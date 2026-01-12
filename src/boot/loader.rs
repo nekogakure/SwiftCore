@@ -1,6 +1,9 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
+
+use swiftcore::kernel_main;
 use uefi::prelude::*;
 
 #[global_allocator]
@@ -14,29 +17,15 @@ mod handler;
 fn main(_image_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     uefi::helpers::init(&mut system_table).expect("Failed to initialize UEFI services");
 
-    // システム情報を表示
     let rev = system_table.uefi_revision();
-    log::warn!("UEFI Version: {}.{}", rev.major(), rev.minor());
 
-    // ファームウェアベンダー情報
-    log::warn!("Firmware Vendor: {}", system_table.firmware_vendor());
-    log::warn!("Firmware Revision: {}", system_table.firmware_revision());
-    log::warn!("");
-    log::warn!("Boot successful! System is ready.");
-    log::warn!("");
+    log::debug!("=== SwiftBoot ===");
+    log::debug!("UEFI Version: {}.{}", rev.major(), rev.minor());
+    log::debug!("Firmware Vendor: {}", system_table.firmware_vendor());
+    log::debug!("Firmware Revision: {}", system_table.firmware_revision());
+    log::debug!("Boot services initialized");
+    log::debug!("Transferring control to kernel...");
+    log::debug!("");
 
-    // カーネルを起動する準備
-    log::warn!("Preparing to start kernel...");
-
-    // TODO: カーネルに制御を移す
-    // kernel_main();
-
-    log::warn!("Bootloader complete. System halted.");
-
-    loop {
-        #[cfg(target_arch = "x86_64")]
-        unsafe {
-            core::arch::asm!("hlt");
-        }
-    }
+    kernel_main();
 }
