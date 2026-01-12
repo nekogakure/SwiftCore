@@ -6,6 +6,9 @@ use uefi::prelude::*;
 #[global_allocator]
 static ALLOCATOR: uefi::allocator::Allocator = uefi::allocator::Allocator;
 
+#[path = "../handler.rs"]
+mod handler;
+
 /// UEFIエントリーポイント
 #[entry]
 fn main(_image_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
@@ -30,18 +33,6 @@ fn main(_image_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
 
     log::warn!("Bootloader complete. System halted.");
 
-    loop {
-        #[cfg(target_arch = "x86_64")]
-        unsafe {
-            core::arch::asm!("hlt");
-        }
-    }
-}
-
-#[panic_handler]
-fn panic(info: &core::panic::PanicInfo) -> ! {
-    log::error!("BOOTLOADER PANIC!");
-    log::error!("{}", info);
     loop {
         #[cfg(target_arch = "x86_64")]
         unsafe {
