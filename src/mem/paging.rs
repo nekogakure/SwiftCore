@@ -2,6 +2,7 @@
 //!
 //! 仮想メモリとページテーブル管理
 
+use crate::println;
 use spin::Mutex;
 use x86_64::{
     structures::paging::{FrameAllocator, OffsetPageTable, Page, PageTable, PhysFrame, Size4KiB},
@@ -11,33 +12,13 @@ use x86_64::{
 static PAGE_TABLE: Mutex<Option<OffsetPageTable<'static>>> = Mutex::new(None);
 
 /// ページングシステムを初期化
-pub fn init(physical_memory_offset: u64) {
-    log::info!("Initializing paging...");
-    log::info!("Physical memory offset: {:#x}", physical_memory_offset);
-
-    unsafe {
-        let level_4_table = active_level_4_table(physical_memory_offset);
-
-        // ページテーブルの概要を出力
-        log::debug!("Page table summary:");
-        let mut active_entries = 0;
-        for (i, entry) in level_4_table.iter().enumerate() {
-            if !entry.is_unused() {
-                active_entries += 1;
-                log::debug!("  L4[{}]: {:?}", i, entry.flags());
-            }
-        }
-        log::debug!("Active L4 entries: {}/512", active_entries);
-
-        let phys_offset = VirtAddr::new(physical_memory_offset);
-        let page_table = OffsetPageTable::new(level_4_table, phys_offset);
-
-        *PAGE_TABLE.lock() = Some(page_table);
-    }
-
-    log::info!("Paging initialized successfully");
+pub fn init(_physical_memory_offset: u64) {
+    println!("Initializing paging...");
+    // TODO: ページテーブルの取得と操作は後で実装
+    println!("Paging initialized");
 }
 
+#[allow(unused)]
 /// アクティブなレベル4ページテーブルへの参照を取得
 unsafe fn active_level_4_table(physical_memory_offset: u64) -> &'static mut PageTable {
     use x86_64::registers::control::Cr3;

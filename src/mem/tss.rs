@@ -2,6 +2,7 @@
 //!
 //! TSSを管理
 
+use crate::println;
 use spin::Once;
 use x86_64::structures::tss::TaskStateSegment;
 use x86_64::VirtAddr;
@@ -14,7 +15,7 @@ static TSS: Once<TaskStateSegment> = Once::new();
 /// TSSを初期化して返す
 #[allow(unused_unsafe)]
 pub fn init() -> &'static TaskStateSegment {
-    log::debug!("Initializing TSS...");
+    println!("Initializing TSS...");
 
     TSS.call_once(|| {
         let mut tss = TaskStateSegment::new();
@@ -29,7 +30,7 @@ pub fn init() -> &'static TaskStateSegment {
             stack_end
         };
 
-        log::debug!("TSS configured with IST[{}] stack", DOUBLE_FAULT_IST_INDEX);
+        println!("TSS configured with IST[{}] stack", DOUBLE_FAULT_IST_INDEX);
         tss
     })
 }

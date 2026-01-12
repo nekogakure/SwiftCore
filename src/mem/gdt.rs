@@ -3,22 +3,25 @@
 //! Global Descriptor Tableを管理
 
 use crate::mem::tss;
+use crate::println;
+use core::arch::asm;
 use spin::Once;
-use x86_64::instructions::segmentation::{Segment, CS};
 use x86_64::instructions::tables::load_tss;
 use x86_64::structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector};
 
 static GDT: Once<(GlobalDescriptorTable, Selectors)> = Once::new();
 
 /// GDTセレクタ
+#[allow(unused)]
 struct Selectors {
     code_selector: SegmentSelector,
+    data_selector: SegmentSelector,
     tss_selector: SegmentSelector,
 }
 
 /// GDTを初期化
 pub fn init() {
-    log::info!("Initializing GDT...");
+    println!("Initializing GDT...");
 
     // TSSを初期化
     let tss = tss::init();
@@ -27,27 +30,67 @@ pub fn init() {
     let (gdt, selectors) = GDT.call_once(|| {
         let mut gdt = GlobalDescriptorTable::new();
         let code_selector = gdt.append(Descriptor::kernel_code_segment());
+        let data_selector = gdt.append(Descriptor::kernel_data_segment());
         let tss_selector = gdt.append(Descriptor::tss_segment(tss));
 
-        log::debug!("GDT entries created:");
-        log::debug!("  Code selector: {:?}", code_selector);
-        log::debug!("  TSS selector: {:?}", tss_selector);
+        println!("GDT entries created:");
+        println!("  Code selector: {:?}", code_selector);
+        println!("  Data selector: {:?}", data_selector);
+        println!("  TSS selector: {:?}", tss_selector);
 
         (
             gdt,
             Selectors {
                 code_selector,
+                data_selector,
                 tss_selector,
             },
         )
     });
 
-    // GDTをロードしてセグメントレジスタを設定
     unsafe {
+        // GDTをロード
         gdt.load();
-        CS::set_reg(selectors.code_selector);
+
+        // UEFI環境では既存のセグメントレジスタをそのまま使用
+        // データセグメントの変更はスキップ
+        // set_data_segments(selectors.data_selector);
+
+        // コードセグメントの変更もスキップ
+        // set_cs(selectors.code_selector);
+
+        // TSSのみロード
         load_tss(selectors.tss_selector);
     }
 
-    log::info!("GDT initialized successfully");
+    println!("GDT loaded with TSS");
+}
+
+#[allow(unused)]
+/// データセグメントレジスタを設定
+unsafe fn set_data_segments(selector: SegmentSelector) {
+    asm!(
+        "mov ds, {0:x}",
+        "mov es, {0:x}",
+        "mov fs, {0:x}",
+        "mov gs, {0:x}",
+        "mov ss, {0:x}",
+        in(reg) selector.0,
+        options(nostack, preserves_flags)
+    );
+}
+
+#[allow(unused)]
+/// コードセグメントを設定（far returnを使用）
+unsafe fn set_cs(selector: SegmentSelector) {
+    asm!(
+        "push {sel}",
+        "lea {tmp}, [rip + 2f]",
+        "push {tmp}",
+        "retfq",
+        "2:",
+        sel = in(reg) u64::from(selector.0),
+        tmp = lateout(reg) _,
+        options(preserves_flags)
+    );
 }
