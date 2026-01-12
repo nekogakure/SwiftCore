@@ -16,6 +16,8 @@ path = "src/boot/loader.rs"
 uefi = { version = "0.30", features = ["alloc", "logger"] }
 log = "0.4"
 spin = "0.9"
+x86_64 = "0.15"
+bitflags = "2.4"
 
 [profile.dev]
 panic = "abort"

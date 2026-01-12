@@ -3,7 +3,7 @@
 
 extern crate alloc;
 
-use swiftcore::kernel_main;
+use swiftcore::{kmain, BootInfo};
 use uefi::prelude::*;
 
 #[global_allocator]
@@ -12,6 +12,10 @@ static ALLOCATOR: uefi::allocator::Allocator = uefi::allocator::Allocator;
 #[path = "../handler.rs"]
 mod handler;
 
+static BOOT_INFO: BootInfo = BootInfo {
+    physical_memory_offset: 0,
+};
+
 /// UEFIエントリーポイント
 #[entry]
 fn main(_image_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
@@ -19,13 +23,14 @@ fn main(_image_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
 
     let rev = system_table.uefi_revision();
 
-    log::debug!("=== SwiftBoot ===");
+    log::debug!("SwiftBoot launched");
     log::debug!("UEFI Version: {}.{}", rev.major(), rev.minor());
     log::debug!("Firmware Vendor: {}", system_table.firmware_vendor());
     log::debug!("Firmware Revision: {}", system_table.firmware_revision());
     log::debug!("Boot services initialized");
+
     log::debug!("Transferring control to kernel...");
     log::debug!("");
 
-    kernel_main();
+    kmain(&BOOT_INFO);
 }

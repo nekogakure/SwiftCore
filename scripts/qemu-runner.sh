@@ -20,7 +20,7 @@ done
 
 if [ -z "$OVMF" ]; then
     echo "Error: OVMF firmware not found. Please install ovmf package."
-    echo "  Debian/Ubuntu: sudo apt install ovmf"
+    echo "  Ubuntu: sudo apt install ovmf"
     echo "  Arch Linux: sudo pacman -S edk2-ovmf"
     exit 1
 fi
@@ -43,4 +43,5 @@ exec qemu-system-x86_64 \
     -bios "$OVMF" \
     -drive format=raw,file=fat:rw:"$TEMP_DIR/esp" \
     -net none \
-    -nographic
+    -nographic \
+    -no-reboot
