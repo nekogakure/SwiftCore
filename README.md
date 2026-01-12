@@ -1,0 +1,26 @@
+# SwiftCore
+SwiftCore は Rust で書かれた x86_64 / UEFI 向けのハイブリッドカーネルです。
+SwiftCoreOS に使用されています。（開発途中）
+
+## 特徴
+- **UEFI 起動**: 最新の UEFI ファームウェアで動作
+- **64-bit x86 アーキテクチャ**: 完全な 64-bit サポート
+- **ハイブリッドカーネル設計**: モノリシックとマイクロカーネルの利点を組み合わせ
+- **メモリ安全性**: Rust の型システムによる安全性保証
+
+## ビルド
+```bash
+cargo build --target x86_64-unknown-uefi
+```
+
+### 実行
+QEMU で実行する場合:
+```bash
+# OVMF (UEFI firmware) が必要
+qemu-system-x86_64 \
+    -bios /usr/share/ovmf/OVMF.fd \
+    -drive format=raw,file=target/x86_64-unknown-uefi/debug/SwiftCore.efi
+```
+
+## ライセンス
+[LICENSE](./LICENSE)ファイルを参照してください

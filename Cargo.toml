@@ -1,7 +1,26 @@
 [package]
 name = "SwiftCore"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 authors = ["nekogakure <info@mail.nekogakure.jp>"]
+default-run = "swiftboot"
+
+[lib]
+name = "swiftcore"
+path = "src/main.rs"
+crate-type = ["lib"]
+
+[[bin]]
+name = "swiftboot"
+path = "src/boot/loader.rs"
 
 [dependencies]
+uefi = { version = "0.30", features = ["alloc", "logger"] }
+log = "0.4"
+spin = "0.9"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
