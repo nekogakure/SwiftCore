@@ -12,6 +12,7 @@ pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 static TSS: Once<TaskStateSegment> = Once::new();
 
 /// TSSを初期化して返す
+#[allow(unused_unsafe)]
 pub fn init() -> &'static TaskStateSegment {
     log::debug!("Initializing TSS...");
 
