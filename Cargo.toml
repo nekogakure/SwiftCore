@@ -3,10 +3,11 @@ name = "SwiftCore"
 version = "0.1.0"
 edition = "2021"
 authors = ["nekogakure <info@mail.nekogakure.jp>"]
+default-run = "boot"
 
 [lib]
 name = "swiftcore"
-path = "src/kernel.rs"
+path = "src/lib.rs"
 
 [[bin]]
 name = "boot"

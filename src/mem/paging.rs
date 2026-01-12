@@ -2,7 +2,7 @@
 //!
 //! 仮想メモリとページテーブル管理
 
-use crate::println;
+use crate::sprintln;
 use spin::Mutex;
 use x86_64::{
     structures::paging::{FrameAllocator, OffsetPageTable, Page, PageTable, PhysFrame, Size4KiB},
@@ -13,9 +13,9 @@ static PAGE_TABLE: Mutex<Option<OffsetPageTable<'static>>> = Mutex::new(None);
 
 /// ページングシステムを初期化
 pub fn init(_physical_memory_offset: u64) {
-    println!("Initializing paging...");
+    sprintln!("Initializing paging...");
     // TODO: ページテーブルの取得と操作は後で実装
-    println!("Paging initialized");
+    sprintln!("Paging initialized");
 }
 
 #[allow(unused)]

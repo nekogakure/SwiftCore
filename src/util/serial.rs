@@ -94,7 +94,7 @@ pub fn print(args: fmt::Arguments) {
 
 /// シリアル出力マクロ
 #[macro_export]
-macro_rules! print {
+macro_rules! sprint {
     ($($arg:tt)*) => {
         $crate::util::serial::print(format_args!($($arg)*))
     };
@@ -102,9 +102,9 @@ macro_rules! print {
 
 /// 改行付きのシリアル出力マクロ
 #[macro_export]
-macro_rules! println {
-    () => ($crate::print!("\n"));
+macro_rules! sprintln {
+    () => ($crate::sprint!("\n"));
     ($($arg:tt)*) => {
-        $crate::print!("{}\n", format_args!($($arg)*))
+        $crate::sprint!("{}\n", format_args!($($arg)*))
     };
 }

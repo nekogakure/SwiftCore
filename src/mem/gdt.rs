@@ -3,7 +3,7 @@
 //! Global Descriptor Tableを管理
 
 use crate::mem::tss;
-use crate::println;
+use crate::sprintln;
 use core::arch::asm;
 use spin::Once;
 use x86_64::instructions::tables::load_tss;
@@ -21,7 +21,7 @@ struct Selectors {
 
 /// GDTを初期化
 pub fn init() {
-    println!("Initializing GDT...");
+    sprintln!("Initializing GDT...");
 
     // TSSを初期化
     let tss = tss::init();
@@ -33,10 +33,10 @@ pub fn init() {
         let data_selector = gdt.append(Descriptor::kernel_data_segment());
         let tss_selector = gdt.append(Descriptor::tss_segment(tss));
 
-        println!("GDT entries created:");
-        println!("  Code selector: {:?}", code_selector);
-        println!("  Data selector: {:?}", data_selector);
-        println!("  TSS selector: {:?}", tss_selector);
+        sprintln!("GDT entries created:");
+        sprintln!("  Code selector: {:?}", code_selector);
+        sprintln!("  Data selector: {:?}", data_selector);
+        sprintln!("  TSS selector: {:?}", tss_selector);
 
         (
             gdt,
@@ -63,7 +63,7 @@ pub fn init() {
         load_tss(selectors.tss_selector);
     }
 
-    println!("GDT loaded with TSS");
+    sprintln!("GDT loaded with TSS");
 }
 
 #[allow(unused)]
