@@ -57,6 +57,6 @@ fn main(_image_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     }
 
     unsafe {
-        kmain(&BOOT_INFO);
+        kmain(&*core::ptr::addr_of!(BOOT_INFO));
     }
 }
