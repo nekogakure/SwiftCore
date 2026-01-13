@@ -1,6 +1,6 @@
 //! カーネルエントリーポイント
 
-use crate::{interrupt, mem, sprintln, util, vprintln, BootInfo};
+use crate::{mem, sprintln, util, vprintln, BootInfo};
 
 /// カーネルエントリーポイント
 #[no_mangle]
