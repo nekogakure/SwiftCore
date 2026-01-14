@@ -59,11 +59,24 @@ pub fn init() {
             idt[i].set_handler_fn(generic_interrupt_handler);
         }
 
+        // 48-255番も念のため設定（未使用の割り込みベクタ）
+        for i in 48..=255 {
+            idt[i].set_handler_fn(generic_interrupt_handler);
+        }
+
         idt
     });
 
     idt.load();
-    debug!("IDT loaded successfully");
+
+    // IDTが正しくロードされたか確認
+    use x86_64::instructions::tables::sidt;
+    let idtr = sidt();
+    debug!(
+        "IDT loaded: base={:p}, limit={}",
+        idtr.base.as_ptr::<u8>(),
+        idtr.limit
+    );
 }
 
 extern "x86-interrupt" fn divide_error_handler(stack_frame: InterruptStackFrame) {
@@ -254,33 +267,96 @@ const PIC_SLAVE: Pic = Pic {
 };
 
 /// PICを初期化（8259A）
+pub fn disable_pit() {
+    debug!("Disabling PIT...");
+    unsafe {
+        use x86_64::instructions::port::Port;
+
+        // Channel 0を停止（one-shot mode、カウント0）
+        Port::<u8>::new(0x43).write(0x30);
+        Port::<u8>::new(0x40).write(0x00);
+        Port::<u8>::new(0x40).write(0x00);
+        // Channel 1,2も停止
+        Port::<u8>::new(0x43).write(0x70); // Channel 1
+        Port::<u8>::new(0x41).write(0x00);
+        Port::<u8>::new(0x41).write(0x00);
+
+        Port::<u8>::new(0x43).write(0xb0); // Channel 2
+        Port::<u8>::new(0x42).write(0x00);
+        Port::<u8>::new(0x42).write(0x00);
+    }
+    debug!("PIT disabled");
+}
+
 pub fn init_pic() {
     debug!("Initializing PIC (8259A)...");
 
     unsafe {
         use x86_64::instructions::port::Port;
 
+        // 先にすべての割り込みをマスク
+        Port::<u8>::new(PIC_MASTER.data).write(0xffu8);
+        Port::<u8>::new(PIC_SLAVE.data).write(0xffu8);
+        for _ in 0..1000 {
+            core::hint::spin_loop();
+        }
+
         // ICW1: Initialize
         Port::new(PIC_MASTER.command).write(0x11u8);
+        for _ in 0..100 {
+            core::hint::spin_loop();
+        }
         Port::new(PIC_SLAVE.command).write(0x11u8);
+        for _ in 0..100 {
+            core::hint::spin_loop();
+        }
 
         // ICW2: Vector offset
         Port::new(PIC_MASTER.data).write(PIC_MASTER.offset);
+        for _ in 0..100 {
+            core::hint::spin_loop();
+        }
         Port::new(PIC_SLAVE.data).write(PIC_SLAVE.offset);
+        for _ in 0..100 {
+            core::hint::spin_loop();
+        }
 
         // ICW3: Cascade
         Port::new(PIC_MASTER.data).write(4u8); // Slave on IRQ2
+        for _ in 0..100 {
+            core::hint::spin_loop();
+        }
         Port::new(PIC_SLAVE.data).write(2u8); // Cascade identity
+        for _ in 0..100 {
+            core::hint::spin_loop();
+        }
 
         // ICW4: 8086 mode
         Port::new(PIC_MASTER.data).write(0x01u8);
+        for _ in 0..100 {
+            core::hint::spin_loop();
+        }
         Port::new(PIC_SLAVE.data).write(0x01u8);
+        for _ in 0..100 {
+            core::hint::spin_loop();
+        }
 
-        Port::new(PIC_MASTER.data).write(0xffu8); // Disable all master interrupts
-        Port::new(PIC_SLAVE.data).write(0xffu8); // Disable all slave interrupts
+        // 再度すべての割り込みをマスク（念のため）
+        Port::<u8>::new(PIC_MASTER.data).write(0xffu8);
+        for _ in 0..100 {
+            core::hint::spin_loop();
+        }
+        Port::<u8>::new(PIC_SLAVE.data).write(0xffu8);
+        for _ in 0..100 {
+            core::hint::spin_loop();
+        }
+
+        // EOIを送信して保留中の割り込みをクリア
+        Port::<u8>::new(PIC_MASTER.command).write(0x20u8);
+        Port::<u8>::new(PIC_SLAVE.command).write(0x20u8);
     }
 
-    debug!("PIC initialized");
+    debug!("PIC initialized, all interrupts masked");
 }
 
 /// CPU割り込みを無効化してシステムを停止

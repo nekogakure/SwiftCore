@@ -13,9 +13,15 @@ pub mod tss;
 pub fn init(physical_memory_offset: u64) {
     sprintln!("Initializing memory...");
 
+    // 割り込みを確実に無効化
+    x86_64::instructions::interrupts::disable();
+
     paging::init(physical_memory_offset);
     gdt::init();
     idt::init();
+
+    // PITを停止してからPICを初期化
+    idt::disable_pit();
     idt::init_pic();
 
     sprintln!("Memory initialized");

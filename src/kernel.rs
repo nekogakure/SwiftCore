@@ -73,9 +73,21 @@ fn kernel_main(boot_info: &'static BootInfo, memory_map: &'static [MemoryRegion]
 
     info!("Kernel ready");
 
-    x86_64::instructions::interrupts::disable();
+    // 割込みを有効化
+    debug!("Enabling interrupts...");
+    unsafe {
+        x86_64::instructions::interrupts::enable();
+    }
+
+    debug!("Interrupts enabled, waiting...");
+    for _ in 0..10000000 {
+        core::hint::spin_loop();
+    }
+
+    debug!("Still alive after enabling interrupts!");
 
     // 無限ループ（永遠に実行）
+    info!("Entering idle loop");
     loop {
         x86_64::instructions::hlt();
     }

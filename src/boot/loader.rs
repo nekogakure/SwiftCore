@@ -41,40 +41,45 @@ fn main(_image_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
         .stdout()
         .output_string(cstr16!("SwiftCore starting...\n"));
 
-    // Graphics Output Protocolを取得
-    let gop_handle = match system_table
-        .boot_services()
-        .get_handle_for_protocol::<GraphicsOutput>()
-    {
-        Ok(handle) => handle,
-        Err(_) => return Status::UNSUPPORTED,
+    // Graphics Output Protocolを取得してフレームバッファ情報を保存
+    let (fb_addr, fb_size, screen_w, screen_h, stride) = {
+        let gop_handle = match system_table
+            .boot_services()
+            .get_handle_for_protocol::<GraphicsOutput>()
+        {
+            Ok(handle) => handle,
+            Err(_) => return Status::UNSUPPORTED,
+        };
+
+        let mut gop = match system_table
+            .boot_services()
+            .open_protocol_exclusive::<GraphicsOutput>(gop_handle)
+        {
+            Ok(gop) => gop,
+            Err(_) => return Status::UNSUPPORTED,
+        };
+
+        let mode_info = gop.current_mode_info();
+        let mut framebuffer = gop.frame_buffer();
+
+        (
+            framebuffer.as_mut_ptr() as u64,
+            framebuffer.size(),
+            mode_info.resolution().0,
+            mode_info.resolution().1,
+            mode_info.stride(),
+        )
     };
 
-    let mut gop = match system_table
-        .boot_services()
-        .open_protocol_exclusive::<GraphicsOutput>(gop_handle)
-    {
-        Ok(gop) => gop,
-        Err(_) => return Status::UNSUPPORTED,
-    };
-
-    let mode_info = gop.current_mode_info();
-    let mut framebuffer = gop.frame_buffer();
-
-    // UEFI 0.30のmemory_map APIを使用してメモリマップを取得
-    let memory_map = match system_table
-        .boot_services()
-        .memory_map(uefi::table::boot::MemoryType::LOADER_DATA)
-    {
-        Ok(map) => map,
-        Err(_) => return Status::OUT_OF_RESOURCES,
-    };
+    // Boot Servicesを終了してメモリマップを取得
+    let (_system_table, memory_map_iter) =
+        unsafe { system_table.exit_boot_services(uefi::table::boot::MemoryType::LOADER_DATA) };
 
     // メモリマップを静的配列にコピー
     let map_count;
     unsafe {
         let mut count = 0;
-        for (i, desc) in memory_map.entries().enumerate() {
+        for (i, desc) in memory_map_iter.entries().enumerate() {
             if i >= 256 {
                 break;
             }
@@ -101,11 +106,11 @@ fn main(_image_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     #[allow(static_mut_refs)]
     unsafe {
         BOOT_INFO.physical_memory_offset = 0;
-        BOOT_INFO.framebuffer_addr = framebuffer.as_mut_ptr() as u64;
-        BOOT_INFO.framebuffer_size = framebuffer.size();
-        BOOT_INFO.screen_width = mode_info.resolution().0;
-        BOOT_INFO.screen_height = mode_info.resolution().1;
-        BOOT_INFO.stride = mode_info.stride();
+        BOOT_INFO.framebuffer_addr = fb_addr;
+        BOOT_INFO.framebuffer_size = fb_size;
+        BOOT_INFO.screen_width = screen_w;
+        BOOT_INFO.screen_height = screen_h;
+        BOOT_INFO.stride = stride;
         BOOT_INFO.memory_map_addr = MEMORY_MAP.as_ptr() as u64;
         BOOT_INFO.memory_map_len = map_count;
         BOOT_INFO.memory_map_entry_size = core::mem::size_of::<MemoryRegion>();

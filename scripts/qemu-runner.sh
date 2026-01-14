@@ -45,4 +45,7 @@ exec qemu-system-x86_64 \
     -net none \
     -m 512M \
     -serial stdio \
-    -vga std
+    -vga std \
+    -no-reboot \
+    -d int,cpu_reset \
+    -D qemu.log
