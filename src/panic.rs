@@ -3,7 +3,7 @@
 //! カーネルパニック時の処理
 //! 通常のパニックは最終手段として使用し、可能な限りResult型でエラー処理を行うこと
 
-use crate::sprintln;
+use crate::{error, warn};
 
 /// エラーコンテキスト（パニック時に使用）
 pub struct ErrorContext {
@@ -20,19 +20,19 @@ pub struct ErrorContext {
 #[allow(deprecated)]
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
-    sprintln!("!!! KERNEL PANIC !!!");
+    error!("!!! KERNEL PANIC !!!");
 
     if let Some(loc) = info.location() {
-        sprintln!("Location: {}:{}:{}", loc.file(), loc.line(), loc.column());
+        warn!("Location: {}:{}:{}", loc.file(), loc.line(), loc.column());
     }
 
     if let Some(msg) = info.message().as_str() {
-        sprintln!("Message: {}", msg);
+        warn!("Message: {}", msg);
     } else if let Some(s) = info.payload().downcast_ref::<&str>() {
-        sprintln!("Message: {}", s);
+        warn!("Message: {}", s);
     }
 
-    sprintln!("System halted. Please reset.");
+    warn!("System halted. Please reset.");
 
     // 割り込みを無効化
     #[cfg(target_arch = "x86_64")]

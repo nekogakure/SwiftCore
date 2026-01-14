@@ -1,6 +1,6 @@
 //! カーネルエントリーポイント
 
-use crate::{mem, sprintln, util, vprintln, BootInfo, KernelError, MemoryRegion, Result};
+use crate::{debug, info, mem, util, vprintln, BootInfo, KernelError, MemoryRegion, Result};
 
 /// カーネルエントリーポイント
 #[no_mangle]
@@ -24,7 +24,7 @@ pub extern "C" fn kernel_entry(boot_info: &'static BootInfo) -> ! {
     );
     vprintln!("");
 
-    sprintln!(
+    info!(
         "Physical memory offset: {:#x}",
         boot_info.physical_memory_offset
     );
@@ -37,9 +37,9 @@ pub extern "C" fn kernel_entry(boot_info: &'static BootInfo) -> ! {
         )
     };
 
-    sprintln!("Memory map entries: {}", boot_info.memory_map_len);
+    info!("Memory map entries: {}", boot_info.memory_map_len);
     for (i, region) in memory_map.iter().enumerate() {
-        sprintln!(
+        debug!(
             "  Region {}: {:#x} - {:#x} ({:?})",
             i,
             region.start,
@@ -52,7 +52,7 @@ pub extern "C" fn kernel_entry(boot_info: &'static BootInfo) -> ! {
     match kernel_main(boot_info, memory_map) {
         Ok(_) => {
             // 正常に完了（通常は到達しない）
-            sprintln!("Kernel shutdown gracefully");
+            info!("Kernel shutdown gracefully");
             halt_forever();
         }
         Err(e) => {
@@ -65,16 +65,14 @@ pub extern "C" fn kernel_entry(boot_info: &'static BootInfo) -> ! {
 
 /// カーネルメイン処理
 fn kernel_main(boot_info: &'static BootInfo, memory_map: &'static [MemoryRegion]) -> Result<()> {
-    sprintln!("Initializing kernel...");
+    info!("Initializing kernel...");
 
     // メモリ管理初期化
     mem::init(boot_info.physical_memory_offset);
     mem::init_frame_allocator(memory_map)?;
 
-    sprintln!("Kernel ready");
-    vprintln!("Kernel ready - entering idle loop...");
+    info!("Kernel ready");
 
-    // 割り込みを無効化
     x86_64::instructions::interrupts::disable();
 
     // 無限ループ（永遠に実行）
@@ -85,27 +83,28 @@ fn kernel_main(boot_info: &'static BootInfo, memory_map: &'static [MemoryRegion]
 
 /// カーネルエラーを処理
 fn handle_kernel_error(error: KernelError) {
-    sprintln!("KERNEL ERROR");
-    sprintln!("Error: {}", error);
-    sprintln!("Is fatal: {}", error.is_fatal());
-    sprintln!("Is retryable: {}", error.is_retryable());
+    use crate::error::*;
+
+    crate::warn!("KERNEL ERROR: {}", error);
+    debug!("Is fatal: {}", error.is_fatal());
+    debug!("Is retryable: {}", error.is_retryable());
 
     match error {
         KernelError::Memory(mem_err) => {
-            sprintln!("Memory error: {:?}", mem_err);
+            crate::error!("Memory error: {:?}", mem_err);
         }
         KernelError::Process(proc_err) => {
-            sprintln!("Process error: {:?}", proc_err);
+            crate::error!("Process error: {:?}", proc_err);
         }
         KernelError::Device(dev_err) => {
-            sprintln!("Device error: {:?}", dev_err);
+            crate::error!("Device error: {:?}", dev_err);
         }
         _ => {
-            sprintln!("Unknown error: {:?}", error);
+            crate::error!("Unknown error: {:?}", error);
         }
     }
 
-    sprintln!("System halted.");
+    info!("System halted.");
 }
 
 /// システムを無限ループで停止
