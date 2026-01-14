@@ -3,7 +3,7 @@
 
 extern crate alloc;
 
-use swiftcore::{kmain, BootInfo, MemoryRegion, MemoryType};
+use swiftcore::{kernel_entry, BootInfo, MemoryRegion, MemoryType};
 use uefi::prelude::*;
 use uefi::proto::console::gop::GraphicsOutput;
 
@@ -32,36 +32,43 @@ static mut MEMORY_MAP: [MemoryRegion; 256] = [MemoryRegion {
 /// UEFIエントリーポイント
 #[entry]
 fn main(_image_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
-    uefi::helpers::init(&mut system_table).expect("Failed to initialize UEFI services");
+    if let Err(_) = uefi::helpers::init(&mut system_table) {
+        return Status::UNSUPPORTED;
+    }
 
-    system_table
+    let _ = system_table.stdout().clear();
+    let _ = system_table
         .stdout()
-        .clear()
-        .expect("Failed to clear screen");
-    system_table
-        .stdout()
-        .output_string(cstr16!("SwiftCore starting...\n"))
-        .expect("Failed to write to console");
+        .output_string(cstr16!("SwiftCore starting...\n"));
 
     // Graphics Output Protocolを取得
-    let gop_handle = system_table
+    let gop_handle = match system_table
         .boot_services()
         .get_handle_for_protocol::<GraphicsOutput>()
-        .expect("Failed to get GOP handle");
+    {
+        Ok(handle) => handle,
+        Err(_) => return Status::UNSUPPORTED,
+    };
 
-    let mut gop = system_table
+    let mut gop = match system_table
         .boot_services()
         .open_protocol_exclusive::<GraphicsOutput>(gop_handle)
-        .expect("Failed to open GOP");
+    {
+        Ok(gop) => gop,
+        Err(_) => return Status::UNSUPPORTED,
+    };
 
     let mode_info = gop.current_mode_info();
     let mut framebuffer = gop.frame_buffer();
 
     // UEFI 0.30のmemory_map APIを使用してメモリマップを取得
-    let memory_map = system_table
+    let memory_map = match system_table
         .boot_services()
         .memory_map(uefi::table::boot::MemoryType::LOADER_DATA)
-        .expect("Failed to get memory map");
+    {
+        Ok(map) => map,
+        Err(_) => return Status::OUT_OF_RESOURCES,
+    };
 
     // メモリマップを静的配列にコピー
     let map_count;
@@ -105,6 +112,6 @@ fn main(_image_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     }
 
     unsafe {
-        kmain(&*core::ptr::addr_of!(BOOT_INFO));
+        kernel_entry(&*core::ptr::addr_of!(BOOT_INFO));
     }
 }

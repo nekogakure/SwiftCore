@@ -1,10 +1,10 @@
 //! カーネルエントリーポイント
 
-use crate::{mem, sprintln, util, vprintln, BootInfo, MemoryRegion};
+use crate::{mem, sprintln, util, vprintln, BootInfo, KernelError, MemoryRegion, Result};
 
 /// カーネルエントリーポイント
 #[no_mangle]
-pub extern "C" fn kmain(boot_info: &'static BootInfo) -> ! {
+pub extern "C" fn kernel_entry(boot_info: &'static BootInfo) -> ! {
     util::console::init();
 
     // フレームバッファ初期化
@@ -15,7 +15,7 @@ pub extern "C" fn kmain(boot_info: &'static BootInfo) -> ! {
         boot_info.stride,
     );
 
-    vprintln!("=== SwiftCore Kernel v0.1.0 ===");
+    vprintln!("SwiftCore v0.1.0");
     vprintln!("Framebuffer: {:#x}", boot_info.framebuffer_addr);
     vprintln!(
         "Resolution: {}x{}",
@@ -48,24 +48,68 @@ pub extern "C" fn kmain(boot_info: &'static BootInfo) -> ! {
         );
     }
 
+    // カーネル初期化を実行
+    match kernel_main(boot_info, memory_map) {
+        Ok(_) => {
+            // 正常に完了（通常は到達しない）
+            sprintln!("Kernel shutdown gracefully");
+            halt_forever();
+        }
+        Err(e) => {
+            // エラー時の処理
+            handle_kernel_error(e);
+            halt_forever();
+        }
+    }
+}
+
+/// カーネルメイン処理
+fn kernel_main(boot_info: &'static BootInfo, memory_map: &'static [MemoryRegion]) -> Result<()> {
+    sprintln!("Initializing kernel...");
+
     // メモリ管理初期化
     mem::init(boot_info.physical_memory_offset);
-    mem::init_frame_allocator(memory_map);
+    mem::init_frame_allocator(memory_map)?;
 
     sprintln!("Kernel ready");
     vprintln!("Kernel ready - entering idle loop...");
 
-    // hlt前に明示的にメッセージを出力
-    sprintln!("Entering HLT loop...");
-    vprintln!("Entering HLT loop...");
+    // 割り込みを無効化
+    x86_64::instructions::interrupts::disable();
 
-    // 最初のhlt命令を実行
-    sprintln!("Executing first HLT");
-    x86_64::instructions::hlt();
-    
-    // hlt後に戻ってきた場合（割り込みなど）
-    sprintln!("Returned from HLT");
-    
+    // 無限ループ（永遠に実行）
+    loop {
+        x86_64::instructions::hlt();
+    }
+}
+
+/// カーネルエラーを処理
+fn handle_kernel_error(error: KernelError) {
+    sprintln!("KERNEL ERROR");
+    sprintln!("Error: {}", error);
+    sprintln!("Is fatal: {}", error.is_fatal());
+    sprintln!("Is retryable: {}", error.is_retryable());
+
+    match error {
+        KernelError::Memory(mem_err) => {
+            sprintln!("Memory error: {:?}", mem_err);
+        }
+        KernelError::Process(proc_err) => {
+            sprintln!("Process error: {:?}", proc_err);
+        }
+        KernelError::Device(dev_err) => {
+            sprintln!("Device error: {:?}", dev_err);
+        }
+        _ => {
+            sprintln!("Unknown error: {:?}", error);
+        }
+    }
+
+    sprintln!("System halted.");
+}
+
+/// システムを無限ループで停止
+fn halt_forever() -> ! {
     loop {
         x86_64::instructions::hlt();
     }

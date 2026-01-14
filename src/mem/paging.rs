@@ -2,6 +2,7 @@
 //!
 //! 仮想メモリとページテーブル管理
 
+use crate::error::{KernelError, MemoryError, Result};
 use crate::sprintln;
 use spin::Mutex;
 use x86_64::{
@@ -39,21 +40,21 @@ unsafe fn active_level_4_table(physical_memory_offset: u64) -> &'static mut Page
 }
 
 /// ページをマップ
-pub fn map_page(page: Page, frame: PhysFrame, flags: PageTableFlags) -> Result<(), &'static str> {
+pub fn map_page(page: Page, frame: PhysFrame, flags: PageTableFlags) -> Result<()> {
     let mut page_table_lock = PAGE_TABLE.lock();
     let page_table = page_table_lock
         .as_mut()
-        .ok_or("Page table not initialized")?;
+        .ok_or(KernelError::Memory(MemoryError::NotMapped))?;
 
     let mut allocator_lock = super::frame_allocator::FRAME_ALLOCATOR.lock();
     let allocator = allocator_lock
         .as_mut()
-        .ok_or("Frame allocator not initialized")?;
+        .ok_or(KernelError::Memory(MemoryError::OutOfMemory))?;
 
     unsafe {
         page_table
             .map_to(page, frame, flags, allocator)
-            .map_err(|_| "Failed to map page")?
+            .map_err(|_| KernelError::Memory(MemoryError::InvalidAddress))?
             .flush();
     }
 

@@ -141,11 +141,14 @@ pub fn init(addr: u64, width: usize, height: usize, stride: usize) {
         stride,
     });
 
-    let info = FB_INFO.get().unwrap();
-    WRITER.call_once(|| Mutex::new(Writer::new(info)));
+    if let Some(info) = FB_INFO.get() {
+        WRITER.call_once(|| Mutex::new(Writer::new(info)));
 
-    // 画面をクリア
-    WRITER.get().unwrap().lock().clear_screen();
+        // 画面をクリア
+        if let Some(writer) = WRITER.get() {
+            writer.lock().clear_screen();
+        }
+    }
 }
 
 /// フレームバッファに文字列を出力

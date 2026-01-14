@@ -1,6 +1,11 @@
 #![no_std]
 #![feature(abi_x86_interrupt)]
 #![allow(unused)]
+#![deny(clippy::unwrap_used)]
+#![deny(clippy::expect_used)]
+
+/// エラー型定義
+pub mod error;
 
 /// カーネル本体
 pub mod kernel;
@@ -14,7 +19,8 @@ pub mod panic;
 /// ユーティリティモジュール
 pub mod util;
 
-pub use kernel::kmain;
+pub use error::{KernelError, Result};
+pub use kernel::kernel_entry;
 
 #[repr(C)]
 pub struct BootInfo {
@@ -66,7 +72,10 @@ pub enum MemoryType {
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct MemoryRegion {
+    /// 開始アドレス
     pub start: u64,
+    /// 長さ（バイト）
     pub len: u64,
+    /// 領域の種類
     pub region_type: MemoryType,
 }

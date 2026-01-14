@@ -102,7 +102,7 @@ pub fn init() {
 pub fn print(args: fmt::Arguments) {
     use core::fmt::Write;
     lock_serial(|serial| {
-        serial.write_fmt(args).unwrap();
+        let _ = serial.write_fmt(args);
     });
 }
 

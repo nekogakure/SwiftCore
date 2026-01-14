@@ -2,7 +2,7 @@
 //!
 //! 4KBページ単位で物理メモリを管理
 
-use crate::{MemoryRegion, MemoryType};
+use crate::{MemoryRegion, MemoryType, error::{KernelError, MemoryError, Result}};
 use spin::Mutex;
 use x86_64::{
     structures::paging::{FrameAllocator, PhysFrame, Size4KiB},
@@ -74,11 +74,12 @@ pub fn init(memory_map: &'static [MemoryRegion]) {
 }
 
 /// フレームを割り当て
-pub fn allocate_frame() -> Option<PhysFrame> {
+pub fn allocate_frame() -> Result<PhysFrame> {
     FRAME_ALLOCATOR
         .lock()
         .as_mut()
         .and_then(|a| a.allocate_frame())
+        .ok_or(KernelError::Memory(MemoryError::OutOfMemory))
 }
 
 /// 使用可能なメモリ情報を取得

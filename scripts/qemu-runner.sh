@@ -43,7 +43,6 @@ exec qemu-system-x86_64 \
     -bios "$OVMF" \
     -drive format=raw,file=fat:rw:"$TEMP_DIR/esp" \
     -net none \
-    -no-reboot \
     -m 512M \
     -serial stdio \
     -vga std

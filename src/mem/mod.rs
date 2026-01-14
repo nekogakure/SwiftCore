@@ -2,7 +2,7 @@
 //!
 //! GDT、TSS、ページング、フレームアロケータ
 
-use crate::{sprintln, MemoryRegion};
+use crate::{sprintln, MemoryRegion, Result};
 
 pub mod frame_allocator;
 pub mod gdt;
@@ -19,7 +19,7 @@ pub fn init(physical_memory_offset: u64) {
 }
 
 /// メモリマップを設定してフレームアロケータを初期化
-pub fn init_frame_allocator(memory_map: &'static [MemoryRegion]) {
+pub fn init_frame_allocator(memory_map: &'static [MemoryRegion]) -> Result<()> {
     frame_allocator::init(memory_map);
 
     if let Some((total, frames)) = frame_allocator::get_memory_info() {
@@ -29,4 +29,6 @@ pub fn init_frame_allocator(memory_map: &'static [MemoryRegion]) {
             frames
         );
     }
+
+    Ok(())
 }
