@@ -151,11 +151,14 @@ pub fn init(addr: u64, width: usize, height: usize, stride: usize) {
     }
 }
 
-/// フレームバッファに文字列を出力
+/// フレームバッファに文字列を出力（割り込み対応）
 pub fn print(args: fmt::Arguments) {
     use core::fmt::Write;
     if let Some(writer) = WRITER.get() {
-        let _ = writer.lock().write_fmt(args);
+        // 割り込みを無効化してロック取得（デッドロック防止）
+        x86_64::instructions::interrupts::without_interrupts(|| {
+            let _ = writer.lock().write_fmt(args);
+        });
     }
 }
 

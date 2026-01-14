@@ -55,14 +55,11 @@ pub fn init() {
         // GDTをロード
         gdt.load();
 
-        // UEFI環境では既存のセグメントレジスタをそのまま使用
-        // データセグメントの変更はスキップ
-        // set_data_segments(selectors.data_selector);
+        // Boot Services終了後はカーネルのセグメントに切り替え
+        set_cs(selectors.code_selector);
+        set_data_segments(selectors.data_selector);
 
-        // コードセグメントの変更もスキップ
-        // set_cs(selectors.code_selector);
-
-        // TSSのみロード
+        // TSSをロード
         load_tss(selectors.tss_selector);
     }
 

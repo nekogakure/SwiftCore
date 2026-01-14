@@ -79,12 +79,11 @@ fn kernel_main(boot_info: &'static BootInfo, memory_map: &'static [MemoryRegion]
         x86_64::instructions::interrupts::enable();
     }
 
-    debug!("Interrupts enabled, waiting...");
-    for _ in 0..10000000 {
-        core::hint::spin_loop();
-    }
+    // タイマー割り込みを設定（10ms周期）
+    mem::idt::init_pit();
+    mem::idt::enable_timer_interrupt();
 
-    debug!("Still alive after enabling interrupts!");
+    info!("Timer interrupt configured (10ms period)");
 
     // 無限ループ（永遠に実行）
     info!("Entering idle loop");
