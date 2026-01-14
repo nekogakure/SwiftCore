@@ -1,6 +1,6 @@
 # SwiftCore
 SwiftCoreはRustで書かれた x86_64 / UEFI 向けのハイブリッドカーネルです。
-SwiftCoreOSに使用されています。（開発途中）
+SwiftOSに使用されています。
 
 ## ビルド
 ```bash
