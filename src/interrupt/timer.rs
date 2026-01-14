@@ -2,7 +2,7 @@
 //!
 //! PIT (Programmable Interval Timer) の管理とタイマー割込みハンドラ
 
-use crate::{debug, util::spinlock::SpinLock};
+use crate::{debug, interrupt::spinlock};
 use core::sync::atomic::{AtomicU64, Ordering};
 use x86_64::structures::idt::InterruptStackFrame;
 

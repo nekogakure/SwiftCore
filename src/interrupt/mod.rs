@@ -5,6 +5,7 @@
 pub mod idt;
 pub mod pic;
 pub mod timer;
+pub mod spinlock;
 
 pub use idt::init as init_idt;
 pub use pic::{init as init_pic, send_eoi};
