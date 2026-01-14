@@ -30,4 +30,43 @@ pub struct BootInfo {
     pub screen_height: usize,
     /// 1行あたりのバイト数
     pub stride: usize,
+    /// メモリマップのアドレス
+    pub memory_map_addr: u64,
+    /// メモリマップのエントリ数
+    pub memory_map_len: usize,
+    /// メモリマップの各エントリサイズ
+    pub memory_map_entry_size: usize,
+}
+
+/// メモリ領域の種類
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(C)]
+pub enum MemoryType {
+    /// 使用可能
+    Usable,
+    /// 予約済み
+    Reserved,
+    /// ACPIで再利用可能
+    AcpiReclaimable,
+    /// ACPI NVS
+    AcpiNvs,
+    /// 不良メモリ
+    BadMemory,
+    /// ブートローダーで使用中
+    BootloaderReclaimable,
+    /// カーネルスタック
+    KernelStack,
+    /// ページテーブル
+    PageTable,
+    /// フレームバッファ
+    Framebuffer,
+}
+
+/// メモリマップエントリ
+#[derive(Debug, Clone, Copy)]
+#[repr(C)]
+pub struct MemoryRegion {
+    pub start: u64,
+    pub len: u64,
+    pub region_type: MemoryType,
 }

@@ -5,20 +5,27 @@
 use crate::sprintln;
 use spin::Mutex;
 use x86_64::{
-    structures::paging::{FrameAllocator, OffsetPageTable, Page, PageTable, PhysFrame, Size4KiB},
+    structures::paging::{
+        Mapper, OffsetPageTable, Page, PageTable, PageTableFlags, PhysFrame, Size4KiB,
+    },
     VirtAddr,
 };
 
 static PAGE_TABLE: Mutex<Option<OffsetPageTable<'static>>> = Mutex::new(None);
 
 /// ページングシステムを初期化
-pub fn init(_physical_memory_offset: u64) {
+pub fn init(physical_memory_offset: u64) {
     sprintln!("Initializing paging...");
-    // TODO: ページテーブルの取得と操作は後で実装
+
+    unsafe {
+        let level_4_table = active_level_4_table(physical_memory_offset);
+        let page_table = OffsetPageTable::new(level_4_table, VirtAddr::new(physical_memory_offset));
+        *PAGE_TABLE.lock() = Some(page_table);
+    }
+
     sprintln!("Paging initialized");
 }
 
-#[allow(unused)]
 /// アクティブなレベル4ページテーブルへの参照を取得
 unsafe fn active_level_4_table(physical_memory_offset: u64) -> &'static mut PageTable {
     use x86_64::registers::control::Cr3;
@@ -32,28 +39,33 @@ unsafe fn active_level_4_table(physical_memory_offset: u64) -> &'static mut Page
 }
 
 /// ページをマップ
-pub fn map_page(
-    _page: Page,
-    _frame: PhysFrame,
-    _flags: PageTableFlags,
-) -> Result<(), &'static str> {
-    let mut _page_table = PAGE_TABLE.lock();
-    let _page_table = _page_table.as_mut().ok_or("Page table not initialized")?;
+pub fn map_page(page: Page, frame: PhysFrame, flags: PageTableFlags) -> Result<(), &'static str> {
+    let mut page_table_lock = PAGE_TABLE.lock();
+    let page_table = page_table_lock
+        .as_mut()
+        .ok_or("Page table not initialized")?;
 
-    // TODO: フレームアロケータの実装
-    // page_table.map_to(page, frame, flags, &mut DummyFrameAllocator)?;
+    let mut allocator_lock = super::frame_allocator::FRAME_ALLOCATOR.lock();
+    let allocator = allocator_lock
+        .as_mut()
+        .ok_or("Frame allocator not initialized")?;
+
+    unsafe {
+        page_table
+            .map_to(page, frame, flags, allocator)
+            .map_err(|_| "Failed to map page")?
+            .flush();
+    }
 
     Ok(())
 }
 
-/// ページフラグ
-pub use x86_64::structures::paging::PageTableFlags;
+/// 仮想アドレスを物理アドレスに変換
+pub fn translate_addr(addr: VirtAddr) -> Option<PhysAddr> {
+    use x86_64::structures::paging::mapper::Translate;
 
-/// ダミーフレームアロケータ（将来的に実装）
-pub struct DummyFrameAllocator;
-
-unsafe impl FrameAllocator<Size4KiB> for DummyFrameAllocator {
-    fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
-        None
-    }
+    let page_table = PAGE_TABLE.lock();
+    page_table.as_ref()?.translate_addr(addr)
 }
+
+pub use x86_64::PhysAddr;

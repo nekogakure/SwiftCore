@@ -41,6 +41,10 @@ impl Writer {
     /// ピクセルを描画
     fn put_pixel(&self, x: usize, y: usize, color: u32) {
         if let Some(info) = FB_INFO.get() {
+            // 境界チェック
+            if x >= info.width || y >= info.height {
+                return;
+            }
             let offset = y * info.stride + x;
             let fb_ptr = info.addr as *mut u32;
             unsafe {
@@ -105,7 +109,8 @@ impl Writer {
     pub fn clear_screen(&mut self) {
         if let Some(info) = FB_INFO.get() {
             let fb_ptr = info.addr as *mut u32;
-            let total_pixels = info.height * info.stride;
+
+            let total_pixels = info.height * info.width;
             unsafe {
                 for i in 0..total_pixels {
                     fb_ptr.add(i).write_volatile(0x000000); // 黒
@@ -147,9 +152,7 @@ pub fn init(addr: u64, width: usize, height: usize, stride: usize) {
 pub fn print(args: fmt::Arguments) {
     use core::fmt::Write;
     if let Some(writer) = WRITER.get() {
-        x86_64::instructions::interrupts::without_interrupts(|| {
-            writer.lock().write_fmt(args).unwrap();
-        });
+        let _ = writer.lock().write_fmt(args);
     }
 }
 
