@@ -494,6 +494,547 @@ pub fn process_count() -> usize {
     PROCESS_TABLE.lock().count()
 }
 
-// TODO: スレッドキューの実装
-// TODO: スケジューラの実装
-// TODO: コンテキストスイッチの実装
+/// スレッドキュー
+///
+/// 実行可能なスレッドを管理するキュー
+pub struct ThreadQueue {
+    /// スレッドの配列（最大容量）
+    threads: [Option<Thread>; Self::MAX_THREADS],
+    /// 現在のスレッド数
+    count: usize,
+}
+
+impl ThreadQueue {
+    /// スレッドキューの最大容量
+    pub const MAX_THREADS: usize = 1024;
+
+    /// 新しいスレッドキューを作成
+    pub const fn new() -> Self {
+        const INIT: Option<Thread> = None;
+        Self {
+            threads: [INIT; Self::MAX_THREADS],
+            count: 0,
+        }
+    }
+
+    /// スレッドを追加
+    ///
+    /// # Returns
+    /// 成功時はスレッドIDを返す。キューが満杯の場合はNone
+    pub fn push(&mut self, thread: Thread) -> Option<ThreadId> {
+        if self.count >= Self::MAX_THREADS {
+            return None;
+        }
+
+        let id = thread.id();
+
+        // 空きスロットを探す
+        for slot in &mut self.threads {
+            if slot.is_none() {
+                *slot = Some(thread);
+                self.count += 1;
+                return Some(id);
+            }
+        }
+
+        None
+    }
+
+    /// スレッドIDでスレッドを取得
+    pub fn get(&self, id: ThreadId) -> Option<&Thread> {
+        self.threads
+            .iter()
+            .find_map(|slot| slot.as_ref().filter(|t| t.id() == id))
+    }
+
+    /// スレッドIDでスレッドの可変参照を取得
+    pub fn get_mut(&mut self, id: ThreadId) -> Option<&mut Thread> {
+        self.threads
+            .iter_mut()
+            .find_map(|slot| slot.as_mut().filter(|t| t.id() == id))
+    }
+
+    /// スレッドを削除
+    ///
+    /// # Returns
+    /// 削除されたスレッドを返す。存在しない場合はNone
+    pub fn remove(&mut self, id: ThreadId) -> Option<Thread> {
+        for slot in &mut self.threads {
+            if let Some(ref thread) = slot {
+                if thread.id() == id {
+                    self.count -= 1;
+                    return slot.take();
+                }
+            }
+        }
+        None
+    }
+
+    /// 次に実行すべきスレッドを取得（削除せずに参照を返す）
+    ///
+    /// Ready状態のスレッドを優先して返す
+    pub fn peek_next(&self) -> Option<&Thread> {
+        // Ready状態のスレッドを探す
+        self.threads
+            .iter()
+            .filter_map(|slot| slot.as_ref())
+            .find(|t| t.state() == ThreadState::Ready)
+    }
+
+    /// 次に実行すべきスレッドを取得（可変参照）
+    pub fn peek_next_mut(&mut self) -> Option<&mut Thread> {
+        // Ready状態のスレッドを探す
+        self.threads
+            .iter_mut()
+            .filter_map(|slot| slot.as_mut())
+            .find(|t| t.state() == ThreadState::Ready)
+    }
+
+    /// 指定された状態のスレッド数をカウント
+    pub fn count_by_state(&self, state: ThreadState) -> usize {
+        self.threads
+            .iter()
+            .filter_map(|slot| slot.as_ref())
+            .filter(|t| t.state() == state)
+            .count()
+    }
+
+    /// 指定されたプロセスに属するスレッドを反復処理
+    pub fn iter_by_process(&self, process_id: ProcessId) -> impl Iterator<Item = &Thread> {
+        self.threads
+            .iter()
+            .filter_map(|slot| slot.as_ref())
+            .filter(move |t| t.process_id() == process_id)
+    }
+
+    /// すべてのスレッドを反復処理
+    pub fn iter(&self) -> impl Iterator<Item = &Thread> {
+        self.threads.iter().filter_map(|slot| slot.as_ref())
+    }
+
+    /// すべてのスレッドを可変反復処理
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Thread> {
+        self.threads.iter_mut().filter_map(|slot| slot.as_mut())
+    }
+
+    /// 現在のスレッド数を取得
+    pub fn count(&self) -> usize {
+        self.count
+    }
+
+    /// スレッドキューが満杯かどうか
+    pub fn is_full(&self) -> bool {
+        self.count >= Self::MAX_THREADS
+    }
+
+    /// スレッドキューが空かどうか
+    pub fn is_empty(&self) -> bool {
+        self.count == 0
+    }
+}
+
+/// グローバルスレッドキュー
+static THREAD_QUEUE: SpinLock<ThreadQueue> = SpinLock::new(ThreadQueue::new());
+
+/// 現在実行中のスレッドID
+static CURRENT_THREAD: SpinLock<Option<ThreadId>> = SpinLock::new(None);
+
+/// スレッドキューにスレッドを追加
+pub fn add_thread(thread: Thread) -> Option<ThreadId> {
+    THREAD_QUEUE.lock().push(thread)
+}
+
+/// スレッドIDでスレッド情報を取得（読み取り専用操作）
+pub fn with_thread<F, R>(id: ThreadId, f: F) -> Option<R>
+where
+    F: FnOnce(&Thread) -> R,
+{
+    let queue = THREAD_QUEUE.lock();
+    queue.get(id).map(f)
+}
+
+/// スレッドIDでスレッド情報を可変操作
+pub fn with_thread_mut<F, R>(id: ThreadId, f: F) -> Option<R>
+where
+    F: FnOnce(&mut Thread) -> R,
+{
+    let mut queue = THREAD_QUEUE.lock();
+    queue.get_mut(id).map(f)
+}
+
+/// スレッドを削除
+pub fn remove_thread(id: ThreadId) -> Option<Thread> {
+    THREAD_QUEUE.lock().remove(id)
+}
+
+/// 次に実行すべきスレッドIDを取得
+pub fn peek_next_thread() -> Option<ThreadId> {
+    THREAD_QUEUE.lock().peek_next().map(|t| t.id())
+}
+
+/// 指定された状態のスレッド数を取得
+pub fn count_threads_by_state(state: ThreadState) -> usize {
+    THREAD_QUEUE.lock().count_by_state(state)
+}
+
+/// すべてのスレッドに対して操作を実行
+pub fn for_each_thread<F>(mut f: F)
+where
+    F: FnMut(&Thread),
+{
+    let queue = THREAD_QUEUE.lock();
+    for thread in queue.iter() {
+        f(thread);
+    }
+}
+
+/// 現在のスレッド数を取得
+pub fn thread_count() -> usize {
+    THREAD_QUEUE.lock().count()
+}
+
+/// 現在実行中のスレッドIDを取得
+pub fn current_thread_id() -> Option<ThreadId> {
+    *CURRENT_THREAD.lock()
+}
+
+/// 現在実行中のスレッドIDを設定
+pub fn set_current_thread(id: Option<ThreadId>) {
+    *CURRENT_THREAD.lock() = id;
+}
+
+/// スケジューラ
+///
+/// スレッドのスケジューリングを管理
+pub struct Scheduler {
+    /// スケジューラが有効かどうか
+    enabled: bool,
+    /// タイムスライス（タイマー割り込み回数）
+    time_slice: u64,
+    /// 現在のタイムスライスカウンタ
+    current_slice: u64,
+}
+
+impl Scheduler {
+    /// デフォルトのタイムスライス（10ms × 10 = 100ms）
+    pub const DEFAULT_TIME_SLICE: u64 = 10;
+
+    /// 新しいスケジューラを作成
+    pub const fn new() -> Self {
+        Self {
+            enabled: false,
+            time_slice: Self::DEFAULT_TIME_SLICE,
+            current_slice: 0,
+        }
+    }
+
+    /// スケジューラを有効化
+    pub fn enable(&mut self) {
+        self.enabled = true;
+    }
+
+    /// スケジューラを無効化
+    pub fn disable(&mut self) {
+        self.enabled = false;
+    }
+
+    /// スケジューラが有効かどうか
+    pub fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+
+    /// タイムスライスを設定
+    pub fn set_time_slice(&mut self, slice: u64) {
+        self.time_slice = slice;
+    }
+
+    /// タイマー割り込み時に呼ばれる
+    ///
+    /// タイムスライスをカウントし、期限が来たらスケジューリングを実行
+    pub fn tick(&mut self) -> bool {
+        if !self.enabled {
+            return false;
+        }
+
+        self.current_slice += 1;
+        if self.current_slice >= self.time_slice {
+            self.current_slice = 0;
+            true // スケジューリングが必要
+        } else {
+            false
+        }
+    }
+
+    /// タイムスライスをリセット
+    pub fn reset_slice(&mut self) {
+        self.current_slice = 0;
+    }
+}
+
+/// グローバルスケジューラ
+static SCHEDULER: SpinLock<Scheduler> = SpinLock::new(Scheduler::new());
+
+/// スケジューラを初期化
+pub fn init_scheduler() {
+    let mut scheduler = SCHEDULER.lock();
+    scheduler.enable();
+}
+
+/// スケジューラを有効化
+pub fn enable_scheduler() {
+    SCHEDULER.lock().enable();
+}
+
+/// スケジューラを無効化
+pub fn disable_scheduler() {
+    SCHEDULER.lock().disable();
+}
+
+/// スケジューラが有効かどうか
+pub fn is_scheduler_enabled() -> bool {
+    SCHEDULER.lock().is_enabled()
+}
+
+/// タイマー割り込み時に呼ばれる（タイマー割り込みハンドラから呼び出す）
+///
+/// # Returns
+/// スケジューリングが必要な場合はtrue
+pub fn scheduler_tick() -> bool {
+    SCHEDULER.lock().tick()
+}
+
+/// 次に実行すべきスレッドを選択
+///
+/// ラウンドロビンスケジューリング：Ready状態のスレッドを順に選択
+///
+/// # Returns
+/// 次に実行すべきスレッドID。実行可能なスレッドがない場合はNone
+pub fn schedule() -> Option<ThreadId> {
+    let mut queue = THREAD_QUEUE.lock();
+
+    // 現在のスレッドを取得
+    let current = *CURRENT_THREAD.lock();
+
+    // 現在のスレッドがあれば、状態をReadyに戻す（Running -> Ready）
+    if let Some(current_id) = current {
+        if let Some(thread) = queue.get_mut(current_id) {
+            if thread.state() == ThreadState::Running {
+                thread.set_state(ThreadState::Ready);
+            }
+        }
+    }
+
+    // 次に実行すべきReady状態のスレッドを探す
+    if let Some(next_thread) = queue.peek_next_mut() {
+        let next_id = next_thread.id();
+        next_thread.set_state(ThreadState::Running);
+
+        // スケジューラのタイムスライスをリセット
+        drop(queue);
+        SCHEDULER.lock().reset_slice();
+
+        Some(next_id)
+    } else {
+        None
+    }
+}
+
+/// 現在のスレッドを明示的にCPUを手放す（yield）
+///
+/// スケジューラを呼び出して次のスレッドに切り替える
+pub fn yield_now() {
+    if !is_scheduler_enabled() {
+        return;
+    }
+
+    // スケジューリングを実行
+    if let Some(next_id) = schedule() {
+        let current = current_thread_id();
+
+        // 次のスレッドが現在のスレッドと異なる場合のみ切り替え
+        if Some(next_id) != current {
+            set_current_thread(Some(next_id));
+            // TODO: コンテキストスイッチを実行
+            // switch_context(current, next_id);
+        }
+    }
+}
+
+/// スレッドをブロック状態にする
+///
+/// 現在のスレッドをBlocked状態にして、次のスレッドにスケジューリング
+pub fn block_current_thread() {
+    if let Some(current_id) = current_thread_id() {
+        with_thread_mut(current_id, |thread| {
+            thread.set_state(ThreadState::Blocked);
+        });
+
+        // 次のスレッドにスケジューリング
+        yield_now();
+    }
+}
+
+/// スレッドをスリープ状態にする
+///
+/// 指定されたスレッドをSleeping状態にする
+pub fn sleep_thread(id: ThreadId) {
+    with_thread_mut(id, |thread| {
+        thread.set_state(ThreadState::Sleeping);
+    });
+}
+
+/// スレッドを起床させる
+///
+/// Sleeping/Blocked状態のスレッドをReady状態にする
+pub fn wake_thread(id: ThreadId) {
+    with_thread_mut(id, |thread| {
+        let state = thread.state();
+        if state == ThreadState::Sleeping || state == ThreadState::Blocked {
+            thread.set_state(ThreadState::Ready);
+        }
+    });
+}
+
+/// スレッドを終了させる
+///
+/// 指定されたスレッドをTerminated状態にして削除
+pub fn terminate_thread(id: ThreadId) {
+    with_thread_mut(id, |thread| {
+        thread.set_state(ThreadState::Terminated);
+    });
+
+    // 現在のスレッドの場合は次のスレッドにスケジューリング
+    if Some(id) == current_thread_id() {
+        set_current_thread(None);
+        yield_now();
+    }
+
+    // スレッドをキューから削除
+    remove_thread(id);
+}
+
+/// コンテキストスイッチ
+///
+/// 現在のスレッドから次のスレッドへコンテキストを切り替える
+#[unsafe(naked)]
+pub unsafe extern "C" fn switch_context(old_context: *mut Context, new_context: *const Context) {
+    core::arch::naked_asm!(
+        // 現在のコンテキストを保存（old_context）
+        // rdi = old_context, rsi = new_context
+
+        // 汎用レジスタを保存
+        "mov [rdi + 0x00], rsp", // rsp
+        "mov [rdi + 0x08], rbp", // rbp
+        "mov [rdi + 0x10], rbx", // rbx
+        "mov [rdi + 0x18], r12", // r12
+        "mov [rdi + 0x20], r13", // r13
+        "mov [rdi + 0x28], r14", // r14
+        "mov [rdi + 0x30], r15", // r15
+        // 戻り先アドレス（rip）を保存
+        "mov rax, [rsp]",
+        "mov [rdi + 0x38], rax", // rip
+        // RFLAGSを保存
+        "pushfq",
+        "pop rax",
+        "mov [rdi + 0x40], rax", // rflags
+        // 新しいコンテキストを復元（new_context）
+
+        // RFLAGSを復元
+        "mov rax, [rsi + 0x40]",
+        "push rax",
+        "popfq",
+        // 汎用レジスタを復元
+        "mov rsp, [rsi + 0x00]", // rsp
+        "mov rbp, [rsi + 0x08]", // rbp
+        "mov rbx, [rsi + 0x10]", // rbx
+        "mov r12, [rsi + 0x18]", // r12
+        "mov r13, [rsi + 0x20]", // r13
+        "mov r14, [rsi + 0x28]", // r14
+        "mov r15, [rsi + 0x30]", // r15
+        // 新しいスレッドのripにジャンプ
+        "mov rax, [rsi + 0x38]",
+        "jmp rax",
+    )
+}
+
+/// 現在のスレッドから指定されたスレッドIDにコンテキストスイッチ
+pub unsafe fn switch_to_thread(current_id: Option<ThreadId>, next_id: ThreadId) {
+    let mut queue = THREAD_QUEUE.lock();
+
+    // 現在のスレッドのコンテキストへのポインタを取得
+    let old_context_ptr = if let Some(id) = current_id {
+        if let Some(thread) = queue.get_mut(id) {
+            thread.context_mut() as *mut Context
+        } else {
+            return; // 現在のスレッドが見つからない
+        }
+    } else {
+        // 現在のスレッドがない場合（初回スイッチ）
+        // ダミーのコンテキストを使用
+        core::ptr::null_mut()
+    };
+
+    // 次のスレッドのコンテキストへのポインタを取得
+    let new_context_ptr = if let Some(thread) = queue.get(next_id) {
+        thread.context() as *const Context
+    } else {
+        return; // 次のスレッドが見つからない
+    };
+
+    // ロックを解放してからコンテキストスイッチ
+    drop(queue);
+
+    // コンテキストスイッチを実行
+    if old_context_ptr.is_null() {
+        // 初回スイッチの場合、現在のコンテキストを保存せずにジャンプ
+        let ctx = &*new_context_ptr;
+        core::arch::asm!(
+            "mov rsp, {rsp}",
+            "mov rbp, {rbp}",
+            "mov rbx, {rbx}",
+            "mov r12, {r12}",
+            "mov r13, {r13}",
+            "mov r14, {r14}",
+            "mov r15, {r15}",
+            "push {rflags}",
+            "popfq",
+            "jmp {rip}",
+            rsp = in(reg) ctx.rsp,
+            rbp = in(reg) ctx.rbp,
+            rbx = in(reg) ctx.rbx,
+            r12 = in(reg) ctx.r12,
+            r13 = in(reg) ctx.r13,
+            r14 = in(reg) ctx.r14,
+            r15 = in(reg) ctx.r15,
+            rflags = in(reg) ctx.rflags,
+            rip = in(reg) ctx.rip,
+            options(noreturn)
+        );
+    } else {
+        switch_context(old_context_ptr, new_context_ptr);
+    }
+}
+
+/// スケジューリングしてコンテキストスイッチを実行
+///
+/// タイマー割り込みハンドラから呼び出される
+pub fn schedule_and_switch() {
+    if !is_scheduler_enabled() {
+        return;
+    }
+
+    let current = current_thread_id();
+
+    // 次のスレッドを選択
+    if let Some(next_id) = schedule() {
+        // 次のスレッドが現在のスレッドと異なる場合のみ切り替え
+        if Some(next_id) != current {
+            set_current_thread(Some(next_id));
+
+            // コンテキストスイッチを実行
+            unsafe {
+                switch_to_thread(current, next_id);
+            }
+        }
+    }
+}
