@@ -1,6 +1,6 @@
 //! フレームバッファ出力
 
-use core::fmt;
+use core::{cmp, fmt};
 use spin::{Mutex, Once};
 
 /// フレームバッファ情報
@@ -79,6 +79,20 @@ impl Writer {
         }
     }
 
+    fn glyph_dims(&self, codepoint: u32) -> Option<(usize, usize, &'static [u8])> {
+        let font = FONT.get()?;
+        let record = glyph_record(font, codepoint)?;
+        let glyph_w = match record.get(0).copied().unwrap_or(0) {
+            0 => font.width,
+            w => w as usize,
+        };
+        let glyph_h = match record.get(1).copied().unwrap_or(0) {
+            0 => font.height,
+            h => h as usize,
+        };
+        Some((glyph_w, glyph_h, record))
+    }
+
     /// ピクセルを描画
     fn put_pixel(&self, x: usize, y: usize, color: u32) {
         if let Some(info) = FB_INFO.get() {
@@ -96,13 +110,8 @@ impl Writer {
 
     /// 文字を描画（BDFフォント）
     fn draw_char(&self, codepoint: u32, x: usize, y: usize, fg: u32, bg: u32) {
-        let font = match FONT.get() {
-            Some(font) => font,
-            None => return,
-        };
-
-        let record = match glyph_record(font, codepoint) {
-            Some(record) => record,
+        let (glyph_w, glyph_h, record) = match self.glyph_dims(codepoint) {
+            Some(value) => value,
             None => return,
         };
 
@@ -111,24 +120,19 @@ impl Writer {
             .map(|bytes| bytes.iter().all(|&b| b == 0))
             .unwrap_or(true);
 
-        let glyph_w = match record.get(0).copied().unwrap_or(0) {
-            0 => font.width,
-            w => w as usize,
-        };
-        let glyph_h = match record.get(1).copied().unwrap_or(0) {
-            0 => font.height,
-            h => h as usize,
-        };
+        let draw_w = cmp::max(self.font_width, glyph_w);
+        let draw_h = cmp::max(self.font_height, glyph_h);
 
-        for row in 0..self.font_height {
-            for col in 0..self.font_width {
+        for row in 0..draw_h {
+            for col in 0..draw_w {
                 let is_set = if bitmap_empty {
                     let is_printable = (0x20..=0x7e).contains(&codepoint);
                     is_printable
+                        && codepoint != 0x20
                         && (row == 0
-                            || row + 1 == self.font_height
+                            || row + 1 == draw_h
                             || col == 0
-                            || col + 1 == self.font_width)
+                            || col + 1 == draw_w)
                 } else if row < glyph_h && col < glyph_w {
                     let offset = 2 + row * 2;
                     let lo = record.get(offset).copied().unwrap_or(0);
@@ -161,7 +165,12 @@ impl Writer {
             return;
         }
 
-        if self.column >= self.max_cols {
+        let (glyph_w, _, _) = self
+            .glyph_dims(ch as u32)
+            .unwrap_or((self.font_width, self.font_height, &[]));
+        let advance = if glyph_w > self.font_width { 2 } else { 1 };
+
+        if self.column + advance > self.max_cols {
             self.new_line();
         }
 
@@ -169,7 +178,7 @@ impl Writer {
         let y = self.row * self.font_height;
         self.draw_char(ch as u32, x, y, 0xFFFFFF, 0x000000); // 白文字、黒背景
 
-        self.column += 1;
+        self.column += advance;
     }
 
     /// 文字列を書き込み
@@ -230,7 +239,7 @@ pub fn init(addr: u64, width: usize, height: usize, stride: usize) {
     if let Some(info) = FB_INFO.get() {
         let (font_w, font_h) = FONT
             .get()
-            .map(|font| (font.width, font.height))
+            .map(|font| (cmp::min(font.width, 8), font.height))
             .unwrap_or((8, 16));
         WRITER.call_once(|| Mutex::new(Writer::new(info, font_w, font_h)));
 

@@ -199,8 +199,8 @@ fn task_a_entry() -> ! {
 fn task_b_entry() -> ! {
     let mut counter = 0u64;
     loop {
-        crate::vprintln!("Hello from Task B ({})", counter);
-        crate::sprintln!("Hello from Task B ({})", counter);
+        crate::vprintln!("TaskBからこんにちは ({})", counter);
+        crate::sprintln!("TaskBからこんにちは ({})", counter);
         counter += 1;
 
         // 少し待機
