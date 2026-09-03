@@ -2927,3 +2927,11 @@ path = "applications/installer"
 hash = "fd5841c2a47055b2ebac218e65e65d65e78a9334"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Refresh Installer dependency lockfile"
+
+[[entries]]
+date = "2026-09-03T21:21:01.175829886+09:00"
+snapshot = "52e6e39478d9705bc494d129"
+path = "mboot"
+hash = "2b52e8921f15eb937c7586705f03ed45fb833add"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Share persistent display surfaces with mDriver"
