@@ -2919,3 +2919,11 @@ path = "core"
 hash = "1e59106b740726eaa2d8f9c2d4d7959c7e6e2843"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Normalize user selectors after page faults"
+
+[[entries]]
+date = "2026-09-03T19:38:41.586462306+09:00"
+snapshot = "c733b405056ef6d6f6b30806"
+path = "applications/installer"
+hash = "fd5841c2a47055b2ebac218e65e65d65e78a9334"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Refresh Installer dependency lockfile"
