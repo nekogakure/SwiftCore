@@ -2967,3 +2967,11 @@ path = "applications/installer"
 hash = "5f9b1ec79875ec5d57319224ad3c5d1b1a6fedd6"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Refresh Installer dependency lockfile"
+
+[[entries]]
+date = "2026-09-04T20:12:34.495482728+09:00"
+snapshot = "b4d62f723ac889723b9c5908"
+path = "mboot"
+hash = "eee7d424c8f1f4a0416b722605d4b962f8663733"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "mdriver: Reprobe GPU after kernel initialization"
