@@ -2975,3 +2975,11 @@ path = "mboot"
 hash = "eee7d424c8f1f4a0416b722605d4b962f8663733"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "mdriver: Reprobe GPU after kernel initialization"
+
+[[entries]]
+date = "2026-09-04T20:26:34.194070784+09:00"
+snapshot = "e2e4f6a4a8776c7a422fdecd"
+path = "mboot"
+hash = "b02e4dca5c7a36804d4036e042a5d1dc37e74fcf"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "mdriver: Report i915 probe failures during boot"
