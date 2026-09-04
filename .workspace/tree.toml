@@ -2935,3 +2935,11 @@ path = "mboot"
 hash = "2b52e8921f15eb937c7586705f03ed45fb833add"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Share persistent display surfaces with mDriver"
+
+[[entries]]
+date = "2026-09-04T17:44:00.680199101+09:00"
+snapshot = "40091cb8237a73d428cd5d14"
+path = "tools/devkit"
+hash = "41e38deadc76aff3fd681e4c1581b8ea28207ecb"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Refresh development trust fixtures"
