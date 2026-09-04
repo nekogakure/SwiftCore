@@ -2959,3 +2959,11 @@ path = "mboot"
 hash = "b8a4bca5f60d4a06673746aadfa1155bd4367cd4"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "mdriver: Batch shared display scanlines"
+
+[[entries]]
+date = "2026-09-04T19:58:24.636237417+09:00"
+snapshot = "ce4cb90ff8a5ab09b111f4b2"
+path = "applications/installer"
+hash = "5f9b1ec79875ec5d57319224ad3c5d1b1a6fedd6"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Refresh Installer dependency lockfile"
