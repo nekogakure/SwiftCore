@@ -2951,3 +2951,11 @@ path = "core"
 hash = "6276a4b3e7ca27aef1142ec33f04ee67d54c8fdd"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Keep boot applications on one filesystem generation"
+
+[[entries]]
+date = "2026-09-04T18:02:50.998103201+09:00"
+snapshot = "8d54fab01b7bdbfc97c67e09"
+path = "mboot"
+hash = "b8a4bca5f60d4a06673746aadfa1155bd4367cd4"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "mdriver: Batch shared display scanlines"
