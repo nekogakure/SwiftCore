@@ -2943,3 +2943,11 @@ path = "tools/devkit"
 hash = "41e38deadc76aff3fd681e4c1581b8ea28207ecb"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Refresh development trust fixtures"
+
+[[entries]]
+date = "2026-09-04T17:49:45.681692575+09:00"
+snapshot = "b386a4a326ead1e002c5c6a2"
+path = "core"
+hash = "6276a4b3e7ca27aef1142ec33f04ee67d54c8fdd"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Keep boot applications on one filesystem generation"
