@@ -2983,3 +2983,11 @@ path = "mboot"
 hash = "b02e4dca5c7a36804d4036e042a5d1dc37e74fcf"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "mdriver: Report i915 probe failures during boot"
+
+[[entries]]
+date = "2026-09-04T20:31:21.345335530+09:00"
+snapshot = "3cbdefd9b664bee76a55d18e"
+path = "mboot"
+hash = "aeb42a554f33b87a09b621118c23d3663bf84462"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "mdriver: Keep GPU probe diagnostics visible"
