@@ -2999,3 +2999,11 @@ path = "mboot"
 hash = "6757c7064ba263a96d82740b06d72dc27b8ad0c5"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "mboot: expose i915 host bridge dependency"
+
+[[entries]]
+date = "2026-09-04T21:02:38.947564906+09:00"
+snapshot = "886cc306d75f337d64276ce3"
+path = "mboot"
+hash = "0eb0be50413b0002dfde1254408f1b55a2cf5cb7"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "mdriver: preserve display probe failure"
