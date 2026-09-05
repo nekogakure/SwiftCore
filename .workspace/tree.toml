@@ -3087,3 +3087,11 @@ path = "mboot"
 hash = "91ecf2a7f740a1855fc1dcdb4516f7415fe88795"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Report missing GPU renderer on scanout"
+
+[[entries]]
+date = "2026-09-05T19:09:39.391541350+09:00"
+snapshot = "6c21587be3051d98d630258e"
+path = "mboot"
+hash = "7261647378490652693eb64cbf23f96c1f57a982"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Preserve GPU scanout buffer modifiers"
