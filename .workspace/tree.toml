@@ -3095,3 +3095,11 @@ path = "mboot"
 hash = "7261647378490652693eb64cbf23f96c1f57a982"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Preserve GPU scanout buffer modifiers"
+
+[[entries]]
+date = "2026-09-05T19:17:25.852916142+09:00"
+snapshot = "d661ec62281e9b09a9bec75f"
+path = "mboot"
+hash = "1c7b1c5bdedee0ea04ffea159b9ff4bb128a253f"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Keep a visible KMS fallback during GPU startup"
