@@ -3071,3 +3071,11 @@ path = "mboot"
 hash = "2bac89cbcc25fcc723ebd8be3e0ff0a1c2efd32b"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Keep GPU initialization failures visible"
+
+[[entries]]
+date = "2026-09-05T18:47:37.731653865+09:00"
+snapshot = "970f093cd81265fb24223bac"
+path = "mboot"
+hash = "e4c0471a3635e665f0502232588c264f760d863f"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Expose the mDriver diagnostic framebuffer"
