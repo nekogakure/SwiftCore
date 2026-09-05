@@ -3063,3 +3063,11 @@ path = "mboot"
 hash = "9389cbaed265ebb4427799f181e3e4608a0eaa24"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Publish GPU renderer only after scanout is ready"
+
+[[entries]]
+date = "2026-09-05T18:36:21.945003950+09:00"
+snapshot = "a64832331417f47334726473"
+path = "mboot"
+hash = "2bac89cbcc25fcc723ebd8be3e0ff0a1c2efd32b"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Keep GPU initialization failures visible"
