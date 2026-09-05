@@ -3007,3 +3007,11 @@ path = "mboot"
 hash = "0eb0be50413b0002dfde1254408f1b55a2cf5cb7"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "mdriver: preserve display probe failure"
+
+[[entries]]
+date = "2026-09-05T17:18:07.333814589+09:00"
+snapshot = "6702169416082f44c7e0b6e9"
+path = "mboot"
+hash = "192c51cea7dee4553bc4e13abd015db74f7c2e2d"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Streamline hardware GPU handoff"
