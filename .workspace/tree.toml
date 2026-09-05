@@ -3119,3 +3119,11 @@ path = "mboot"
 hash = "3cb1aed54d712041cb69e68f708ccd57618f197f"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Provide Intel graphics OpRegion to mDriver"
+
+[[entries]]
+date = "2026-09-05T21:07:25.881819797+09:00"
+snapshot = "dfa080e89c9f1b7dbfbf6de1"
+path = "mboot"
+hash = "b59ba7da81cf339511b1089a311769abab82d211"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Make hardware GPU startup observable"
