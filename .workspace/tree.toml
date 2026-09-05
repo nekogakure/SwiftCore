@@ -3055,3 +3055,11 @@ path = "services"
 hash = "de3338da6bc493ab389446592d8ec442ca0749ae"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Rebuild full GPU frame after presentation failure"
+
+[[entries]]
+date = "2026-09-05T18:28:37.499638301+09:00"
+snapshot = "573e8a8a6cd3f60135ea4b92"
+path = "mboot"
+hash = "9389cbaed265ebb4427799f181e3e4608a0eaa24"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Publish GPU renderer only after scanout is ready"
