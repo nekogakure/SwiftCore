@@ -3039,3 +3039,11 @@ path = "mboot"
 hash = "f74f830ee2228d3427e331ca5309281244c61ae3"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Reuse GPU scanout framebuffers"
+
+[[entries]]
+date = "2026-09-05T17:41:15.196500605+09:00"
+snapshot = "af3e51ab273a5d5c695f4c84"
+path = "services"
+hash = "40f38845a1ba941b4feb4d783e939858968e39d3"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Remove legacy CPU composition"
