@@ -3015,3 +3015,11 @@ path = "mboot"
 hash = "192c51cea7dee4553bc4e13abd015db74f7c2e2d"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Streamline hardware GPU handoff"
+
+[[entries]]
+date = "2026-09-05T17:24:54.992756985+09:00"
+snapshot = "1c53b82e70a1618cb8c6be15"
+path = "mboot"
+hash = "d8526ae285d9bb70bc9567944215ac70431c9924"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Keep the GPU renderer available"
