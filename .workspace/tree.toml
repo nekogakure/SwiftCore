@@ -3079,3 +3079,11 @@ path = "mboot"
 hash = "e4c0471a3635e665f0502232588c264f760d863f"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Expose the mDriver diagnostic framebuffer"
+
+[[entries]]
+date = "2026-09-05T19:00:29.768534335+09:00"
+snapshot = "727dc448939046632ae8de21"
+path = "mboot"
+hash = "91ecf2a7f740a1855fc1dcdb4516f7415fe88795"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Report missing GPU renderer on scanout"
