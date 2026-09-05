@@ -3111,3 +3111,11 @@ path = "mboot"
 hash = "b3d5dfe5e8c5e2a091d22af14745311e6e9123ba"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Provide Intel graphics OpRegion to mDriver"
+
+[[entries]]
+date = "2026-09-05T20:34:04.751134584+09:00"
+snapshot = "17c3e4bb9b9305646643e147"
+path = "mboot"
+hash = "3cb1aed54d712041cb69e68f708ccd57618f197f"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Provide Intel graphics OpRegion to mDriver"
