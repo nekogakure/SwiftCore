@@ -3103,3 +3103,11 @@ path = "mboot"
 hash = "1c7b1c5bdedee0ea04ffea159b9ff4bb128a253f"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Keep a visible KMS fallback during GPU startup"
+
+[[entries]]
+date = "2026-09-05T19:55:14.685326939+09:00"
+snapshot = "3476897ff00a7a1f62269279"
+path = "mboot"
+hash = "b3d5dfe5e8c5e2a091d22af14745311e6e9123ba"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Provide Intel graphics OpRegion to mDriver"
