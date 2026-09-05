@@ -3135,3 +3135,11 @@ path = "mboot"
 hash = "bd447e78a0cc36865fbbeaef6a2e4a72304b9006"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Preserve framebuffer display until GPU readiness"
+
+[[entries]]
+date = "2026-09-05T22:15:22.781070419+09:00"
+snapshot = "7322276969a4024d8e269362"
+path = "mboot"
+hash = "3cb7fe343b4f5583ca79db5a033b07265725955e"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Make GPU readiness the display handoff boundary"
