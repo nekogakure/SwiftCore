@@ -3183,3 +3183,11 @@ path = "mboot"
 hash = "aef21b1b722f1f9cc44af9b5ad457f0a3383f149"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Add pre-KMS GPU handoff diagnostic"
+
+[[entries]]
+date = "2026-09-06T09:57:51.637029625+09:00"
+snapshot = "8c37de1d9fc225e046ef5aa8"
+path = "mboot"
+hash = "6e82ac8e97ff4c4f7b10bc5e08c475dd19e82ed6"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Show pre-KMS diagnostics through DRM"
