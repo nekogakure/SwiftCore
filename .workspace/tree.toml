@@ -3239,3 +3239,11 @@ path = "boot"
 hash = "cb72d43ac8f3f6a7992eca3b1c9938936deac3df"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Remove the watchdog test heartbeat"
+
+[[entries]]
+date = "2026-09-06T11:08:22.527072597+09:00"
+snapshot = "8ded2b9556fd2784f52b7664"
+path = "mboot"
+hash = "309b3079aebee7741e929f33946bae4051da1777"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Allow tests to retain serial logs"
