@@ -3231,3 +3231,11 @@ path = "tools/mdev"
 hash = "fd500585cfb95307d5e8b58a5a5347a4b243d7d5"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Prove watchdog recovery through mdev"
+
+[[entries]]
+date = "2026-09-06T11:01:56.702567101+09:00"
+snapshot = "0f73ee4b53e95045845ab59d"
+path = "boot"
+hash = "cb72d43ac8f3f6a7992eca3b1c9938936deac3df"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Remove the watchdog test heartbeat"
