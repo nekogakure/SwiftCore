@@ -1,6 +1,8 @@
 SCRIPTS	= $(shell pwd)/scripts
 OUT		= $(shell pwd)/out
 MWS		= $(shell pwd)/tools/mws
+MDEV_DIR	= $(shell pwd)/tools/mdev
+MDEV_CONFIG ?= $(shell pwd)/mdev.toml
 MBOOT_DIR	= $(shell pwd)/mboot
 RELEASE_DIR	= $(OUT)/releases
 RELEASE_IMAGE	= $(RELEASE_DIR)/mochiOS.img
@@ -14,7 +16,7 @@ MOCHIOS_INITFS ?= $(OUT)/artifacts/initfs.img
 MOCHIOS_ROOTFS ?= $(OUT)/image-build/rootfs.img
 KERNEL_SIZE_REPORT ?= $(OUT)/metrics/kernel-size.json
 
-.PHONY: all build full build-cached update-boot update-kernel hv-device-io-test hv-image hv-image-test image measure-kernel-size mboot mboot-image mboot-setup mboot-test mdriver mdriver-test release run run-boot smoke-log-test smoke-test-kvm smoke-test-tcg storage-probe-image tls-http-smoke-test developer-pki-sync-smoke-test developer-pki-production-e2e accounts-https-smoke-test ext2-write-test ext2-write-test-tcg clean clean-runner olddefconfig menuconfig fonts repo-init install
+.PHONY: all build full build-cached update-boot update-kernel hv-device-io-test hv-image hv-image-test image measure-kernel-size mboot mboot-image mboot-setup mboot-test mdev mdriver mdriver-test release run run-boot smoke-log-test smoke-test-kvm smoke-test-tcg storage-probe-image test-hardware tls-http-smoke-test developer-pki-sync-smoke-test developer-pki-production-e2e accounts-https-smoke-test ext2-write-test ext2-write-test-tcg clean clean-runner olddefconfig menuconfig fonts repo-init install
 
 all: build
 
@@ -131,6 +133,13 @@ mboot-image: $(MOCHIOS_INITFS) $(MOCHIOS_ROOTFS) mdriver
 
 mboot-test:
 	@$(MAKE) -C $(MBOOT_DIR) test MNU_DIR="$(CURDIR)/core"
+
+mdev:
+	@cargo build --release --locked --manifest-path $(MDEV_DIR)/Cargo.toml
+
+test-hardware: mdev
+	@test -f $(MDEV_CONFIG) || { echo "fatal: run '$(MDEV_DIR)/target/release/mdev init' in the repository root first" >&2; exit 1; }
+	@$(MDEV_DIR)/target/release/mdev --config $(MDEV_CONFIG) test
 
 release: full mboot-image
 	@mkdir -p $(RELEASE_DIR)

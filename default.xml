@@ -143,6 +143,13 @@
     />
 
     <project
+            path="tools/mdev"
+            name="mochiOS/mdev"
+            revision="main"
+            remote="github"
+    />
+
+    <project
             path="applications/terminal"
             name="mochiOS/Terminal"
             revision="main"

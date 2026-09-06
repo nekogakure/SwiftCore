@@ -3,6 +3,7 @@
 .config
 memo/
 out/
+/mdev.toml
 resources/system/samples/*.mpkg
 scripts/config/config.env
 scripts/config/config.mk
