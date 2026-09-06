@@ -3167,3 +3167,11 @@ path = "mboot"
 hash = "9f28b554355e93823c065220bed75d71e4de7a27"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Make GPU handoff failures observable"
+
+[[entries]]
+date = "2026-09-06T09:46:36.788636570+09:00"
+snapshot = "47c235b0637bd01accefe238"
+path = "mboot"
+hash = "1309dbada6294e6d816841feccac8ca191ee8157"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Let DRM select the GPU scanout layout"
