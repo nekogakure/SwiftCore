@@ -3143,3 +3143,11 @@ path = "mboot"
 hash = "3cb7fe343b4f5583ca79db5a033b07265725955e"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Make GPU readiness the display handoff boundary"
+
+[[entries]]
+date = "2026-09-06T09:13:42.350515070+09:00"
+snapshot = "6b9620d372d635bc183ab946"
+path = "mboot"
+hash = "f96cd028f30205aa5c4ac4742dcc01964142fe2e"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Keep GPU failure diagnostics visible"
