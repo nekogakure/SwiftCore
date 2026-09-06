@@ -3191,3 +3191,11 @@ path = "mboot"
 hash = "6e82ac8e97ff4c4f7b10bc5e08c475dd19e82ed6"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Show pre-KMS diagnostics through DRM"
+
+[[entries]]
+date = "2026-09-06T10:06:45.553718533+09:00"
+snapshot = "90aafad2924d352432e4b742"
+path = "mboot"
+hash = "ddbb8f2f7e5cd63ed97ef7abfadb93b0f998091b"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Use atomic KMS for GPU scanout"
