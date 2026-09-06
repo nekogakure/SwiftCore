@@ -3159,3 +3159,11 @@ path = "mboot"
 hash = "e81952d6df33de62d1ea1d31a806b56fed4a833f"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Render compositor scenes directly to GPU scanout"
+
+[[entries]]
+date = "2026-09-06T09:43:04.316243450+09:00"
+snapshot = "78b4a8270c5a07a69972f87d"
+path = "mboot"
+hash = "9f28b554355e93823c065220bed75d71e4de7a27"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Make GPU handoff failures observable"
