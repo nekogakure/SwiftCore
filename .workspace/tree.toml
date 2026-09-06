@@ -3175,3 +3175,11 @@ path = "mboot"
 hash = "1309dbada6294e6d816841feccac8ca191ee8157"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Let DRM select the GPU scanout layout"
+
+[[entries]]
+date = "2026-09-06T09:53:19.345828923+09:00"
+snapshot = "5b9ae82195d4a387366d2bf8"
+path = "mboot"
+hash = "aef21b1b722f1f9cc44af9b5ad457f0a3383f149"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Add pre-KMS GPU handoff diagnostic"
