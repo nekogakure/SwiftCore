@@ -3199,3 +3199,11 @@ path = "mboot"
 hash = "ddbb8f2f7e5cd63ed97ef7abfadb93b0f998091b"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Use atomic KMS for GPU scanout"
+
+[[entries]]
+date = "2026-09-06T10:12:11.412366801+09:00"
+snapshot = "518467be5772d5ccdc350fc8"
+path = "mboot"
+hash = "4301530fa9931587a36c057882f37f100a1c4b8b"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Preserve the active i915 display mode"
