@@ -1,0 +1,131 @@
+version = 1
+id = "3281f70fb6179bff1bb19206"
+created = "2026-09-06T10:59:02.421452802+09:00"
+
+[trigger]
+name = "mochiOS/mdev"
+path = "tools/mdev"
+repository = "/home/jnix/mochiOS/tools/mdev"
+head = "fd500585cfb95307d5e8b58a5a5347a4b243d7d5"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Prove watchdog recovery through mdev"
+
+[[projects]]
+name = "mochiOS/mBoot"
+path = "mboot"
+head = "5570d635e8be6772a885bade3e850c4ecac8ab24"
+
+[[projects]]
+name = "mochiOS/boot"
+path = "boot"
+head = "4228092102956f34ef39e38c292e4a8c37e02e43"
+
+[[projects]]
+name = "mochiOS/mnu"
+path = "core"
+head = "a5d715ce212a8cab03e711f43d2d01becb6d95e8"
+
+[[projects]]
+name = "mochiOS/syscalls"
+path = "user"
+head = "8d6ef9b52e0e2272a09f0ed1b8595ac8cd0aa0c6"
+
+[[projects]]
+name = "mochiOS/services"
+path = "services"
+head = "fdc5bb53fddd77411e2c876a8de22d199d612097"
+
+[[projects]]
+name = "mochiOS/cexts"
+path = "cexts"
+head = "6b2a6bc3bd6a378e7552bc259f35e704118ec6b7"
+
+[[projects]]
+name = "mochiOS/drivers"
+path = "drivers"
+head = "cea09a39e3fc922dc540364df28695ede9b3c690"
+
+[[projects]]
+name = "newlib-cygwin"
+path = "libraries/newlib"
+head = "c5fb7a6e7da7327bea8f9eb7d8b29fc9a02b3c56"
+
+[[projects]]
+name = "mochiOS/rust"
+path = "libraries/rust"
+head = "349d5519d5370c4b3a079404b968589daf849fd8"
+
+[[projects]]
+name = "mochiOS/libc"
+path = "libraries/libc"
+head = "cb52345fa7f01bb0942741a0e843e39037e371e2"
+
+[[projects]]
+name = "mochiOS/msh"
+path = "binaries/msh"
+head = "33d9c01afe745cd98dfa868a5582aa41256f40ee"
+
+[[projects]]
+name = "mochiOS/coreutils"
+path = "binaries/coreutils"
+head = "8ca734dfba9be0388b2a4fc24a443580ee654753"
+
+[[projects]]
+name = "mochiOS/Binder"
+path = "applications/binder"
+head = "72a55ee94243794e4be34abb9e9209a8a71214fc"
+
+[[projects]]
+name = "mochiOS/Installer.app"
+path = "applications/installer"
+head = "5f9b1ec79875ec5d57319224ad3c5d1b1a6fedd6"
+
+[[projects]]
+name = "mochiOS/ViewKit"
+path = "libraries/viewkit"
+head = "349ea8424226e34f30238a62e072ebd0baf89f43"
+
+[[projects]]
+name = "mochiOS/buildtools"
+path = "build"
+head = "faf13aaa596e676668a5485f29ee3ec9d5223a9e"
+
+[[projects]]
+name = "mochiOS/test-application"
+path = "applications/test.app"
+head = "2d6d2340343f7ab10452b483d855da984087af8e"
+
+[[projects]]
+name = "mochiOS/fonts"
+path = "libraries/fonts"
+head = "e34529b27589b2415352925d186661dc07327ea1"
+
+[[projects]]
+name = "mochiOS/mws"
+path = "tools/mws"
+head = "bd13ee9f19a5a7fce4740902eba8999f9736642b"
+
+[[projects]]
+name = "mochiOS/devkit"
+path = "tools/devkit"
+head = "41e38deadc76aff3fd681e4c1581b8ea28207ecb"
+
+[[projects]]
+name = "mochiOS/Terminal"
+path = "applications/terminal"
+head = "3070d37501be228621175b915274a84e84bd23d7"
+
+[[projects]]
+name = "mochiOS/Files.app"
+path = "applications/file"
+head = "bf8b63de54a1e85a4fb2d2370a18b310cb02491a"
+
+[[projects]]
+name = "mochiOS/Settings.app"
+path = "applications/settings"
+head = "40bbf56bbe50c696afd8788eed1dcc76410ca5db"
+
+[[projects]]
+name = "mochiOS/mdev"
+path = "tools/mdev"
+head = "fd500585cfb95307d5e8b58a5a5347a4b243d7d5"
