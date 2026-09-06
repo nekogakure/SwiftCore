@@ -3247,3 +3247,11 @@ path = "mboot"
 hash = "309b3079aebee7741e929f33946bae4051da1777"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Allow tests to retain serial logs"
+
+[[entries]]
+date = "2026-09-06T11:08:31.955538655+09:00"
+snapshot = "9fc28611e75163dfb3dd7899"
+path = "tools/mdev"
+hash = "aeb9c76b0d0fc44a24b112048b145f0869bbdf7b"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Support manual hardware log capture"
