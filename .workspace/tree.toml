@@ -3255,3 +3255,11 @@ path = "tools/mdev"
 hash = "aeb9c76b0d0fc44a24b112048b145f0869bbdf7b"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Support manual hardware log capture"
+
+[[entries]]
+date = "2026-09-07T17:51:52.960117328+09:00"
+snapshot = "be49185acf239feb6e4b7319"
+path = "services"
+hash = "56339745952775423d2883ddd343e73fda3ba499"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Restore physical GPU desktop boot and diagnostics"
