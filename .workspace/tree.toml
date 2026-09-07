@@ -3263,3 +3263,11 @@ path = "services"
 hash = "56339745952775423d2883ddd343e73fda3ba499"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Restore physical GPU desktop boot and diagnostics"
+
+[[entries]]
+date = "2026-09-07T17:55:10.959850409+09:00"
+snapshot = "cfda95d39cabd9cdcae0a9c6"
+path = "tools/mdev"
+hash = "79217962ee5b600497784c04c065b074ec7ebb42"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Restore physical GPU desktop boot and diagnostics"
