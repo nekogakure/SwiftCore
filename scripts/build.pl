@@ -915,6 +915,7 @@ sub build_std_binary {
         || index($manifest_path, "$root_dir/services/") == 0
         || index($manifest_path, '/services-stage/') >= 0) {
         push @cargo_configs,
+            "patch.crates-io.mochios-mdriver-protocol.path='$root_dir/boot/crates/mdriver-protocol'",
             "patch.\"https://github.com/mochiOS/syscalls\".mochi-user-platform.path='$root_dir/user/crates/platform'",
             "patch.\"https://github.com/mochiOS/syscalls\".mochi-user-syscall.path='$root_dir/user/crates/syscall'",
             "patch.\"https://github.com/mochiOS/syscalls\".mochios-linux-gui-protocol.path='$root_dir/user/crates/linux-gui-protocol'",
