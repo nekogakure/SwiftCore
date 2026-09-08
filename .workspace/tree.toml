@@ -3271,3 +3271,11 @@ path = "tools/mdev"
 hash = "79217962ee5b600497784c04c065b074ec7ebb42"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Restore physical GPU desktop boot and diagnostics"
+
+[[entries]]
+date = "2026-09-08T18:30:35.658889328+09:00"
+snapshot = "eadaf58710c5759e59129435"
+path = "libraries/viewkit"
+hash = "11450792c8e8e96d1061a6b420b550d2cfe497a7"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Preserve hardware-confirmed GPU desktop and input recovery"
