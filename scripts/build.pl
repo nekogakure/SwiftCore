@@ -506,157 +506,15 @@ sub latest_matching_file {
 
 sub build_newlib_runtime {
     my ($root_dir, $toolchain) = @_;
-    my $user_root = "$root_dir/user";
-    my $newlib_root = "$root_dir/libraries/newlib";
-    my $bootstrap_target = 'x86_64-elf';
-    my $final_target = 'x86_64-unknown-mochios';
-    my $target_json = "$user_root/targets/$final_target.json";
-    my $out_root = "$root_dir/out/newlib-port";
-    my $newlib_build_dir = "$out_root/build-newlib";
-    my $install_root = "$out_root/toolchain";
-    my $sysroot_dir = "$install_root/$bootstrap_target";
-    my $runtime_target_dir = "$out_root/cargo-target";
-    my $hello_dir = "$out_root/hello";
-    my $crt0_s = "$user_root/runtime/crt0.S";
-    my $linker_script = "$user_root/runtime/linker.ld";
-    my $hello_c = "$user_root/libc-port/tests/hello.c";
-    my @local_source_patches = (
-        '--config',
-        qq{patch."https://github.com/mochiOS/syscalls".mochi-user-syscall.path='$user_root/crates/syscall'},
-        '--config',
-        qq{patch."https://github.com/mochiOS/mnu".mnu-abi.path='$root_dir/core/crates/abi'},
-    );
-
-    for my $cmd (qw(cargo make nm readelf x86_64-elf-ar x86_64-elf-gcc x86_64-elf-ranlib)) {
-        need_cmd($cmd);
-    }
-    need_dir("$root_dir/.repo");
-    need_file("$newlib_root/configure");
-    need_file("$user_root/Cargo.toml");
-    need_file($target_json);
-    need_file($crt0_s);
-    need_file($linker_script);
-    need_file($hello_c);
-
-    make_path($out_root, $runtime_target_dir, $hello_dir);
-
-    print "[test] user existing tests\n";
     run_env(
         cargo_env(),
-        'cargo', "+$toolchain", 'test',
-        '--manifest-path', "$user_root/Cargo.toml",
-        '-p', 'mochi-user-syscall',
-        @local_source_patches,
+        'bash', "$root_dir/user/scripts/build-newlib.sh",
+        '--newlib-source', "$root_dir/libraries/newlib",
+        '--output', "$root_dir/out/newlib-port",
+        '--abi-source', "$root_dir/core/crates/abi",
+        '--toolchain', $toolchain,
+        '--jobs', $ENV{JOBS} // 8,
     );
-
-    my $newlib_ready = -f "$sysroot_dir/lib/libc.a"
-        && -f "$sysroot_dir/lib/libm.a"
-        && -d "$sysroot_dir/include";
-    if ($build_options{cached} && $newlib_ready) {
-        print "[cache] reuse newlib toolchain\n";
-    } else {
-        remove_tree($newlib_build_dir, $install_root);
-        make_path($newlib_build_dir, $install_root);
-
-        print "[build] configure newlib\n";
-        run_in_dir(
-            $newlib_build_dir,
-            'env',
-            'CC_FOR_TARGET=x86_64-elf-gcc',
-            'AR_FOR_TARGET=x86_64-elf-ar',
-            'RANLIB_FOR_TARGET=x86_64-elf-ranlib',
-            "$newlib_root/configure",
-            "--target=$bootstrap_target",
-            "--prefix=$install_root",
-            '--disable-binutils',
-            '--disable-gas',
-            '--disable-gdb',
-            '--disable-gprof',
-            '--disable-libgloss',
-            '--disable-multilib',
-            '--disable-nls',
-            '--disable-shared',
-            '--disable-sim',
-            '--disable-werror',
-            '--disable-newlib-supplied-syscalls',
-            '--enable-newlib-multithread=no',
-            '--enable-newlib-retargetable-locking',
-        );
-
-        print "[build] newlib\n";
-        my $jobs = capture_stdout('nproc');
-        chomp $jobs;
-        $jobs = 1 if $jobs !~ /^\d+$/ || $jobs < 1;
-        run('make', '-C', $newlib_build_dir, "-j$jobs", 'all-target-newlib');
-
-        print "[build] install newlib\n";
-        run('make', '-C', $newlib_build_dir, 'install-target-newlib');
-    }
-
-    print "[build] mochiOS runtime\n";
-    run_env(
-        cargo_env(),
-        'cargo', "+$toolchain", 'build',
-        '-Z', 'json-target-spec',
-        '-Z', 'build-std=core,compiler_builtins',
-        '--manifest-path', "$user_root/Cargo.toml",
-        '--package', 'mochi-user-newlib-runtime',
-        '--release',
-        '--target', $target_json,
-        '--target-dir', $runtime_target_dir,
-        @local_source_patches,
-    );
-
-    my $runtime_lib = "$runtime_target_dir/$final_target/release/libmochi_user_newlib_runtime.a";
-    my $crt0_o = "$hello_dir/crt0.o";
-    my $hello_o = "$hello_dir/hello.o";
-    my $hello_elf = "$hello_dir/hello.elf";
-    my $hello_map = "$hello_dir/hello.map";
-    need_file($runtime_lib);
-
-    print "[build] crt0\n";
-    run('x86_64-elf-gcc', '-c', $crt0_s, '-o', $crt0_o);
-
-    print "[build] hello.c\n";
-    run(
-        'x86_64-elf-gcc',
-        "--sysroot=$sysroot_dir",
-        '-isystem', "$sysroot_dir/include",
-        '-ffreestanding',
-        '-O2',
-        '-c', $hello_c,
-        '-o', $hello_o,
-    );
-
-    print "[link] hello.elf\n";
-    run(
-        'x86_64-elf-gcc',
-        "--sysroot=$sysroot_dir",
-        "-L$sysroot_dir/lib",
-        '-static',
-        '-nostdlib',
-        '-nostartfiles',
-        "-Wl,-T,$linker_script",
-        '-Wl,-no-pie',
-        '-Wl,-z,noexecstack',
-        "-Wl,-Map,$hello_map",
-        '-Wl,--start-group',
-        $crt0_o,
-        $hello_o,
-        $runtime_lib,
-        '-lc',
-        '-lm',
-        '-lgcc',
-        '-Wl,--end-group',
-        '-o', $hello_elf,
-    );
-
-    print "[check] hello.elf header\n";
-    run('readelf', '-h', $hello_elf);
-    run('readelf', '-l', $hello_elf);
-    my $undefined = capture_stdout('nm', '-u', $hello_elf);
-    dief('hello.elf still has undefined symbols') if $undefined =~ /\S/;
-    print "[done] $hello_elf\n";
 }
 
 sub prepare_rust_sysroot_overlay {
@@ -992,11 +850,11 @@ sub build_rust_std_programs {
     my $user_root = "$root_dir/user";
     my $out_root = "$root_dir/out/rust-std";
     my $target_json = "$user_root/targets/x86_64-unknown-mochios.json";
-    my $bootstrap_target = 'x86_64-elf';
-    my $sysroot_dir = "$root_dir/out/newlib-port/toolchain/$bootstrap_target";
-    my $crt0_o = "$root_dir/out/newlib-port/hello/crt0.o";
-    my $runtime_lib = "$root_dir/out/newlib-port/cargo-target/x86_64-unknown-mochios/release/libmochi_user_newlib_runtime.a";
-    my $linker_script = "$user_root/runtime/linker.ld";
+    my $sdk = "$root_dir/out/newlib-port/sdk";
+    my $sysroot_dir = "$sdk/sysroot";
+    my $crt0_o = "$sdk/lib/crt0.o";
+    my $runtime_lib = "$sdk/lib/libmochi_user_newlib_runtime.a";
+    my $linker_script = "$sdk/lib/linker.ld";
     my $sysroot_overlay = "$out_root/sysroot-overlay";
     my $libc_override_path = "$root_dir/libraries/libc";
     my $libc_build_hash = capture_stdout('cksum', "$libc_override_path/build.rs");
