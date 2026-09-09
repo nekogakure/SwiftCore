@@ -219,6 +219,19 @@ sub write_build_info {
     close $fh;
 }
 
+sub record_source_manifest {
+    my ($artifact_dir) = @_;
+    my $source_manifest = $ENV{MOCHIOS_SOURCE_MANIFEST};
+    if (defined($source_manifest) && $source_manifest ne '') {
+        need_file($source_manifest);
+        install_file('0644', $source_manifest, "$artifact_dir/manifest.xml");
+    } else {
+        need_cmd('repo');
+        need_dir("$root_dir/.repo");
+        run_in_dir($root_dir, 'repo', 'manifest', '-r', '-o', "$artifact_dir/manifest.xml");
+    }
+}
+
 sub write_checksums {
     my ($artifact_dir, @files) = @_;
     my $cwd = getcwd();
@@ -401,8 +414,6 @@ sub cached_artifacts_current {
                     || $relative =~ m{(?:^|/)\.git\z}
                     || $relative =~ m{(?:^|/)target\z}
                     || $relative =~ m{(?:^|/)node_modules\z}
-                    || $relative eq 'libraries/libc/src'
-                    || $relative eq 'libraries/libc/.generated'
                     || $relative eq 'libraries/fonts/out')) {
                     $File::Find::prune = 1;
                     return;
@@ -878,7 +889,6 @@ sub build_rust_std_programs {
     my $settings_stage = "$out_root/settings-stage";
     my $legacy_rustup_home = "$out_root/rustup-home-$libc_build_hash";
 
-    relink_libc_src($libc_override_path);
     remove_tree($services_stage);
     make_path($services_stage);
     install_file('0644', "$root_dir/services/Cargo.toml", "$services_stage/Cargo.toml");
@@ -1454,71 +1464,6 @@ sub write_gpt {
     dief("sfdisk failed") if !$ok;
 }
 
-sub relink_libc_src {
-	my ($libc_root) = @_;
-
-	my $cargo_home = $ENV{CARGO_HOME} // "$ENV{HOME}/.cargo";
-	my @matches = sort glob(
-		"$cargo_home/registry/src/*/libc-0.2.185"
-	);
-
-	my $registry_root;
-
-	for my $candidate (@matches) {
-		my $mod_path =
-			"$candidate/src/unix/newlib/mod.rs";
-
-		next if !-f $mod_path;
-
-		open my $fh, '<', $mod_path
-			or dief("open $mod_path: $!");
-
-		local $/;
-		my $source = <$fh> // '';
-		close $fh;
-
-		next if $source !~ /\bmod generic;/;
-		next if $source !~ /target_arch = "aarch64"/;
-		next if $source !~ /target_arch_not_implemented/;
-
-		$registry_root = $candidate;
-		last;
-	}
-
-	dief('valid libc 0.2.185 source was not found in Cargo registry')
-		if !defined $registry_root;
-
-	my $registry_src = "$registry_root/src";
-	my $override_src = "$libc_root/newlib";
-	my $libc_src = "$libc_root/src";
-	my $generated_root = "$libc_root/.generated";
-	my $upstream_mod =
-		"$registry_src/unix/newlib/mod.rs";
-
-	need_file("$override_src/mod.rs");
-	need_file("$override_src/generic.rs");
-	need_file("$override_src/mochios.rs");
-	need_file($upstream_mod);
-
-	remove_tree($generated_root);
-	make_path($generated_root);
-
-	run('cp', '-p', $upstream_mod, "$generated_root/upstream-newlib-mod.rs");
-
-	remove_tree($libc_src);
-	copy_tree_dereferenced($registry_src, $libc_src);
-
-	my $wrapper_dst = "$libc_src/unix/newlib/mod.rs";
-
-	unlink $wrapper_dst
-		or dief("unlink $wrapper_dst: $!")
-		if -e $wrapper_dst || -l $wrapper_dst;
-
-	run('cp', '-p', "$override_src/mod.rs", $wrapper_dst);
-
-	print "[copy] prepared libc sources\n";
-}
-
 if (!-f $config_file) {
     run(
         'perl',
@@ -1582,10 +1527,9 @@ if ($build_options{kernel_only}) {
     my $esp_offset = 2048 * 512;
     my @disk_images = ($disk_img, "$artifact_dir/disk.img");
 
-    for my $cmd (qw(cargo install mcopy nm objcopy repo sha256sum)) {
+    for my $cmd (qw(cargo install mcopy nm objcopy sha256sum)) {
         need_cmd($cmd);
     }
-    need_dir("$root_dir/.repo");
     need_file("$core_root/Cargo.toml");
     need_file($esp_img);
     need_file("$esp_dir/system/initfs.img");
@@ -1612,7 +1556,7 @@ if ($build_options{kernel_only}) {
         for @disk_images;
 
     print "[step] refresh artifact metadata\n";
-    run_in_dir($root_dir, 'repo', 'manifest', '-r', '-o', "$artifact_dir/manifest.xml");
+    record_source_manifest($artifact_dir);
     write_build_info("$artifact_dir/build-info.txt", $root_dir);
     refresh_existing_checksums($artifact_dir, 'kernel.debug', 'kernel.meta');
     print "[done] updated kernel without rebuilding userland: $artifact_dir/kernel.elf\n";
@@ -1624,10 +1568,9 @@ if ($build_options{boot_only}) {
     my @disk_images = ($disk_img, "$artifact_dir/disk.img");
     my $boot_release_dir = "$root_dir/out/bootloader/target/x86_64-unknown-uefi/release";
 
-    for my $cmd (qw(cargo install mcopy repo sha256sum)) {
+    for my $cmd (qw(cargo install mcopy sha256sum)) {
         need_cmd($cmd);
     }
-    need_dir("$root_dir/.repo");
     need_file($esp_img);
     need_file("$artifact_dir/SHA256SUMS");
     need_file($_) for @disk_images;
@@ -1647,7 +1590,7 @@ if ($build_options{boot_only}) {
         for @disk_images;
 
     print "[step] refresh artifact metadata\n";
-    run_in_dir($root_dir, 'repo', 'manifest', '-r', '-o', "$artifact_dir/manifest.xml");
+    record_source_manifest($artifact_dir);
     write_build_info("$artifact_dir/build-info.txt", $root_dir);
     refresh_existing_checksums($artifact_dir);
     print "[done] updated bootloader without rebuilding userland: $artifact_dir/BOOTX64.EFI\n";
@@ -1681,11 +1624,10 @@ if (cached_artifacts_current($root_dir, $build_input_stamp, "$artifact_dir/disk.
     exit 0;
 }
 
-for my $cmd (qw(cargo chown cp fakeroot install mcopy mke2fs mkfs.fat mmd nm objcopy perl sh stat tar repo sha256sum sfdisk truncate dd find sort)) {
+for my $cmd (qw(cargo chown cp fakeroot install mcopy mke2fs mkfs.fat mmd nm objcopy perl sh stat tar sha256sum sfdisk truncate dd find sort)) {
     need_cmd($cmd);
 }
 
-need_dir("$root_dir/.repo");
 need_dir("$root_dir/libraries/fonts");
 need_file("$core_root/Cargo.toml");
 for my $script (qw(build-signature-db.pl build-sample-mpkg.pl pack-cext.pl)) {
@@ -2139,7 +2081,7 @@ install_file('0755', $path{i8042_driver_bin}, "$artifact_dir/i8042-driver.entry"
 install_file('0755', $path{virtio_net_driver_bin}, "$artifact_dir/virtio-net.driver") if $enable_virtio_net eq '1';
 
 print "[step] record exact repo manifest\n";
-run_in_dir($root_dir, 'repo', 'manifest', '-r', '-o', "$artifact_dir/manifest.xml");
+record_source_manifest($artifact_dir);
 
 write_build_info("$artifact_dir/build-info.txt", $root_dir);
 
