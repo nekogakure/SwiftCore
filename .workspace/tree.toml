@@ -3279,3 +3279,11 @@ path = "libraries/viewkit"
 hash = "11450792c8e8e96d1061a6b420b550d2cfe497a7"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Preserve hardware-confirmed GPU desktop and input recovery"
+
+[[entries]]
+date = "2026-09-09T12:31:09.587654625+09:00"
+snapshot = "0dbb68bf4f4fcf74e1e332c6"
+path = "user"
+hash = "0296983eaeb64c4296c2a5153ee50608ce606a7a"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "Build a relocatable newlib SDK without the OS workspace"
