@@ -3287,3 +3287,11 @@ path = "user"
 hash = "0296983eaeb64c4296c2a5153ee50608ce606a7a"
 author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
 message = "Build a relocatable newlib SDK without the OS workspace"
+
+[[entries]]
+date = "2026-09-09T20:24:11.034808741+09:00"
+snapshot = "1c05c67457e6925b2043631f"
+path = "applications/installer"
+hash = "fe3f264ee7f0d071f5756bc1c3c4a9c08335dd8f"
+author = "tas0dev <156896971+tas0dev@users.noreply.github.com>"
+message = "build: refresh installer dependency lockfile"
