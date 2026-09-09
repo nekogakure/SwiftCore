@@ -919,6 +919,8 @@ sub build_rust_std_programs {
     remove_tree($legacy_rustup_home);
 
     my @rustflags = (
+        '--remap-path-prefix', "$ENV{HOME}=/build",
+        '--remap-path-prefix', "$root_dir=/src/mochios",
         '-C', 'linker=x86_64-elf-gcc',
         '-C', "link-arg=--sysroot=$sysroot_dir",
         '-C', "link-arg=-L$sysroot_dir/lib",
